@@ -25,6 +25,12 @@ forward 2
         let ex = parse(EXAMPLE).unwrap();
         assert_eq!(solve_1(&ex), 150);
     }
+
+    #[test]
+    fn test_solve_2() {
+        let ex = parse(EXAMPLE).unwrap();
+        assert_eq!(solve_2(&ex), 900);
+    }
 }
 
 #[derive(Eq, PartialEq, Debug)]
@@ -54,17 +60,37 @@ fn parse(inp: &str) -> Result<Vec<Move>> {
 }
 
 fn solve_1(moves: &[Move]) -> i64 {
+    use Move::*;
     let (depth, hor_pos) = moves.iter().fold((0, 0), |(depth, hor_pos), mv| match mv {
-        Move::Down(d) => (depth + d, hor_pos),
-        Move::Up(d) => (depth - d, hor_pos),
-        Move::Forward(f) => (depth, hor_pos + f),
+        Down(d) => (depth + d, hor_pos),
+        Up(d) => (depth - d, hor_pos),
+        Forward(f) => (depth, hor_pos + f),
     });
+    depth * hor_pos
+}
+
+fn solve_2(moves: &[Move]) -> i64 {
+    use Move::*;
+    let (depth, hor_pos, _) = moves
+        .iter()
+        .fold((0, 0, 0), |(depth, hor_pos, aim), mv| match mv {
+            Down(d) => (depth, hor_pos, aim + d),
+            Up(d) => (depth, hor_pos, aim - d),
+            Forward(steps) => (depth + aim * steps, hor_pos + steps, aim),
+        });
     depth * hor_pos
 }
 
 pub fn part_1(input: &str) -> Result<()> {
     let moves = parse(input)?;
     let sol = solve_1(&moves);
+    println!("{sol}");
+    Ok(())
+}
+
+pub fn part_2(input: &str) -> Result<()> {
+    let moves = parse(input)?;
+    let sol = solve_2(&moves);
     println!("{sol}");
     Ok(())
 }
