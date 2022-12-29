@@ -6,6 +6,7 @@ pub mod day_01;
 pub mod day_02;
 pub mod day_03;
 pub mod day_04;
+pub mod day_05;
 pub mod dl_data;
 
 pub struct Solution {
@@ -80,8 +81,8 @@ pub const SOLUTIONS: [Solution; 25] = [
     },
     Solution {
         day_no: 5,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_05::part_1,
+        part_2: day_05::part_2,
     },
     Solution {
         day_no: 6,
