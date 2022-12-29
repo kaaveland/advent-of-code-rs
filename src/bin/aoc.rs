@@ -1,11 +1,9 @@
-use std::time::Instant;
 use anyhow::Result;
-use clap::{arg, Command, value_parser};
-use itertools::Itertools;
-use aoc::{dl_data, SOLUTIONS, timed_all_solutions, timed_solution};
+use aoc::{dl_data, timed_all_solutions, timed_solution, SOLUTIONS};
+use clap::{arg, value_parser, Command};
 
 fn cli() -> Command {
-    let max_solution: i64= SOLUTIONS.len() as i64 + 1;
+    let max_solution: i64 = SOLUTIONS.len() as i64 + 1;
     Command::new("aoc")
         .about("Advent of code 2021 toolset")
         .subcommand_required(true)
@@ -43,15 +41,12 @@ fn main() -> Result<()> {
             let day = *sub_matches.get_one::<u8>("day").unwrap();
             dl_data::single_day(day)
         }
-        Some(("data", _)) => {
-            dl_data::all_days()
-        }
+        Some(("data", _)) => dl_data::all_days(),
         Some(("run", sub_matches)) => {
             let day = *sub_matches.get_one::<u8>("day").unwrap();
             timed_solution(day)
         }
         Some(("runall", _)) => timed_all_solutions(),
-        _ => unreachable!()
+        _ => unreachable!(),
     }
-
 }
