@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use fxhash::FxHashSet as HashSet;
 use itertools::Itertools;
+use rayon::prelude::*;
 use std::cmp::max;
 use std::str::FromStr;
 
@@ -79,13 +80,22 @@ fn parse_lines(input: &str) -> Result<Vec<Line>> {
 }
 
 fn solve(lines: &Vec<Line>) -> usize {
+    let sets: Vec<_> = lines
+        .into_par_iter()
+        .enumerate()
+        .map(|(i, line)| {
+            let mut points: HashSet<(i32, i32)> = HashSet::default();
+            let pointset: HashSet<_> = line.iter().collect();
+            for other in &lines[i + 1..] {
+                let next: HashSet<_> = other.iter().collect();
+                points.extend(pointset.intersection(&next));
+            }
+            points
+        })
+        .collect();
     let mut points: HashSet<(i32, i32)> = HashSet::default();
-    for i in 0..lines.len() {
-        let pointset: HashSet<_> = lines[i].iter().collect();
-        for other in &lines[i + 1..] {
-            let next: HashSet<_> = other.iter().collect();
-            points.extend(pointset.intersection(&next));
-        }
+    for pointset in sets {
+        points.extend(pointset.iter())
     }
     points.len()
 }
