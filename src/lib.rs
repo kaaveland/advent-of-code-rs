@@ -27,6 +27,13 @@ pub fn not_implemented(_: &str) -> Result<()> {
     Ok(())
 }
 
+fn elapsed_string(now: Instant) -> String {
+    if now.elapsed().as_millis() > 2 {
+        format!("{}ms", now.elapsed().as_millis())
+    } else {
+        format!("{}μs", now.elapsed().as_micros())
+    }
+}
 pub fn timed_solution(day: u8) -> Result<()> {
     let path = format!("./input/day_{day:0>2}/input");
     let have_it = fs::read_to_string(path.as_str());
@@ -44,11 +51,11 @@ pub fn timed_solution(day: u8) -> Result<()> {
         .context(format!("Error: no solution for day: {day}"))?;
     println!("Run part 1 of day {day}");
     (candidate.part_1)(content.as_str())?;
-    println!("Took {}ms", now.elapsed().as_millis());
+    println!("Took {}", elapsed_string(now));
     let now = Instant::now();
     println!("Run part 2 of day {day}");
     (candidate.part_2)(content.as_str())?;
-    println!("Took {}ms", now.elapsed().as_millis());
+    println!("Took {}", elapsed_string(now));
     Ok(())
 }
 
@@ -59,10 +66,7 @@ pub fn timed_all_solutions() -> Result<()> {
     for sol in SOLUTIONS.iter() {
         timed_solution(sol.day_no)?;
     }
-    println!(
-        "All implemented solutions took: {}ms",
-        now.elapsed().as_millis()
-    );
+    println!("All implemented solutions took: {}", elapsed_string(now));
     Ok(())
 }
 
