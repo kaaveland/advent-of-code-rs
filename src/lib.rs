@@ -1,3 +1,5 @@
+extern crate core;
+
 use anyhow::{Context, Result};
 use std::fs;
 use std::time::Instant;
@@ -9,6 +11,7 @@ pub mod day_04;
 pub mod day_05;
 pub mod day_06;
 pub mod day_07;
+pub mod day_08;
 pub mod dl_data;
 
 pub struct Solution {
@@ -50,6 +53,7 @@ pub fn timed_solution(day: u8) -> Result<()> {
 pub fn timed_all_solutions() -> Result<()> {
     let now = Instant::now();
     println!("Run all implemented solutions");
+
     for sol in SOLUTIONS.iter() {
         timed_solution(sol.day_no)?;
     }
@@ -98,8 +102,8 @@ pub const SOLUTIONS: [Solution; 25] = [
     },
     Solution {
         day_no: 8,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_08::part_1,
+        part_2: day_08::part_2,
     },
     Solution {
         day_no: 9,
