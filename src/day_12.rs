@@ -31,7 +31,6 @@ impl Cave {
 }
 
 type Graph = Vec<Vec<Cave>>;
-type Path = Vec<Cave>;
 
 #[derive(Debug, Eq, PartialEq)]
 struct Search<'a> {
@@ -41,7 +40,7 @@ struct Search<'a> {
     end: Cave,
 }
 
-fn options<'a>(graph: &'a Graph, vtx: &'a Cave, path: &Vec<&'a Cave>) -> Vec<&'a Cave> {
+fn options<'a>(graph: &'a Graph, vtx: &'a Cave, path: &[&'a Cave]) -> Vec<&'a Cave> {
     graph[vtx.idx()]
         .iter()
         .filter(|&option: &&Cave| option.is_large() || !path.contains(&option))
@@ -100,6 +99,40 @@ fn dfs_count(search: &Search) -> usize {
     completed_paths
 }
 
+fn options_dup_once<'a>(
+    graph: &'a Graph,
+    vtx: &'a Cave,
+    path: &[&'a Cave],
+) -> Vec<(bool, &'a Cave)> {
+    graph[vtx.idx()]
+        .iter()
+        .map(|cave| (path.contains(&cave) && cave.is_small(), cave))
+        .collect_vec()
+}
+
+fn dfs_count_dup_once(search: &Search) -> usize {
+    let mut completed_paths = 0;
+    let mut stack = vec![(false, vec![&search.start])];
+    while let Some((has_dup, path)) = stack.pop() {
+        if let Some(&cave) = path.last() {
+            if cave == &search.end {
+                completed_paths += 1;
+            } else {
+                for (would_dup, next_place) in options_dup_once(&search.graph, cave, &path) {
+                    if next_place == &search.start || (would_dup && has_dup) {
+                        continue;
+                    } else {
+                        let mut next_path = path.iter().copied().collect_vec();
+                        next_path.push(next_place);
+                        stack.push((would_dup || has_dup, next_path));
+                    }
+                }
+            }
+        }
+    }
+    completed_paths
+}
+
 pub fn part_1(input: &str) -> Result<()> {
     let search = parse_graph(input);
     let paths = dfs_count(&search);
@@ -108,7 +141,7 @@ pub fn part_1(input: &str) -> Result<()> {
 }
 pub fn part_2(input: &str) -> Result<()> {
     let search = parse_graph(input);
-    let paths = dfs_count(&search);
+    let paths = dfs_count_dup_once(&search);
     println!("{paths}");
     Ok(())
 }
@@ -124,9 +157,21 @@ pub mod tests {
     }
 
     #[test]
+    fn small_example_p2() {
+        let search = parse_graph(SMALL_EXAMPLE);
+        assert_eq!(dfs_count_dup_once(&search), 36);
+    }
+
+    #[test]
     fn large_example_p1() {
         let search = parse_graph(EXAMPLE);
         assert_eq!(dfs_count(&search), 226);
+    }
+
+    #[test]
+    fn large_example_p2() {
+        let search = parse_graph(EXAMPLE);
+        assert_eq!(dfs_count_dup_once(&search), 3509);
     }
 
     const SMALL_EXAMPLE: &str = "start-A
