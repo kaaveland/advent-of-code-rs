@@ -1,9 +1,7 @@
 use anyhow::{Context, Result};
 use fxhash::FxHashSet as HashSet;
 use itertools::Itertools;
-use rayon::prelude::*;
 use std::cmp::{max, min};
-use std::iter::empty;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 
@@ -25,8 +23,8 @@ impl FromStr for Line {
         let xr = xr.parse()?;
         let yr = yr.parse()?;
         Ok(Line {
-            source: (xl, yl),
-            dest: (xr, yr),
+            source: if xl <= xr { (xl, yl) } else { (xr, yr) },
+            dest: if xl <= xr { (xr, yr) } else { (xl, yl) },
         })
     }
 }
@@ -38,7 +36,7 @@ enum LineType {
     Sloped,
 }
 
-impl<'a> Line {
+impl Line {
     fn straight(&self) -> bool {
         self.source.0 == self.dest.0 || self.source.1 == self.dest.1
     }
@@ -55,14 +53,14 @@ impl<'a> Line {
     }
     // We can use the dir to find N easily: We insert y_dest = y_source + t * dir_y when dir_y != 0
     // and x_dest = x_source + t * dir_x when dir_x != 0 and solve for t
-    fn len(&self) -> usize {
+    fn len(&self) -> i32 {
         let dir = self.dir();
         if dir.0 != 0 {
             // x_dest = x_source + N * dir_x => (x_dest - x_source) / dir_x = N
-            ((self.dest.0 - self.source.0) / dir.0) as usize
+            (self.dest.0 - self.source.0) / dir.0
         } else {
             // y_dest = y_source + N * dir_y => (y_dest - y_source) / dir_y = N
-            ((self.dest.1 - self.source.1) / dir.1) as usize
+            (self.dest.1 - self.source.1) / dir.1
         }
     }
 
@@ -88,12 +86,10 @@ impl<'a> Line {
         match (self.kind(), other.kind()) {
             (Horizontal, Horizontal) if self.source.1 == other.source.1 => {
                 let y = self.source.1;
-                // Let's find the leftmost point that could possibly be in both
                 let x_s = max(
                     min(self.source.0, self.dest.0),
                     min(other.source.0, other.dest.0),
                 );
-                // The rightmost point that could possibly be in both
                 let x_d = min(
                     max(self.source.0, self.dest.0),
                     max(other.source.0, other.dest.0),
@@ -101,7 +97,6 @@ impl<'a> Line {
                 if x_s <= x_d {
                     Points::Horizontally(y, x_s..=x_d)
                 } else {
-                    // Non-overlapping
                     Points::Empty
                 }
             }
@@ -132,59 +127,147 @@ impl<'a> Line {
                 }
             }
             (Horizontal, Vertical) => other.intersection(self),
-            _ => Points::Empty,
-        }
-    }
+            (Sloped, Horizontal) => {
+                let y = other.source.1;
+                let xr = (
+                    min(other.source.0, other.dest.0),
+                    max(other.source.0, other.dest.0),
+                );
+                let xr = (xr.0)..=(xr.1);
+                let t = (y - self.source.1) / self.dir().1;
+                let x = self.source.0 + t * self.dir().0;
+                if t >= 0 && t <= self.len() && xr.contains(&x) {
+                    Points::Single(x, y)
+                } else {
+                    Points::Empty
+                }
+            }
+            (Horizontal, Sloped) => other.intersection(self),
+            (Sloped, Vertical) => {
+                let x = other.source.0;
+                let yr = (
+                    min(other.source.1, other.dest.1),
+                    max(other.source.1, other.dest.1),
+                );
+                let yr = (yr.0)..=(yr.1);
+                let t = (x - self.source.0) / self.dir().0;
+                let y = self.source.1 + t * self.dir().1;
+                if t >= 0 && t <= self.len() && yr.contains(&y) {
+                    Points::Single(x, y)
+                } else {
+                    Points::Empty
+                }
+            }
+            (Vertical, Sloped) => other.intersection(self),
+            (Sloped, Sloped) => {
+                let dir = self.dir();
+                let their_dir = other.dir();
+                if dir == their_dir {
+                    // Me first
+                    let y_slope = dir.1 / dir.0;
+                    let y_0 = self.source.1;
+                    let b = y_0 - y_slope * self.source.0;
+                    let y_0_them = other.source.1;
+                    let b_them = y_0_them - other.source.0 * y_slope;
+                    // b is y-intersect and must be the same or the lines are parallel
+                    if b == b_them {
+                        let left_x = max(
+                            min(self.source.0, self.dest.0),
+                            min(other.source.0, other.dest.0),
+                        );
+                        let right_x = min(
+                            max(self.source.0, self.dest.0),
+                            max(other.source.0, other.dest.0),
+                        );
 
-    fn iter(&'a self) -> LineIterator<'a> {
-        LineIterator {
-            line: self,
-            point: self.source,
-            dir: self.dir(),
-            exhausted: false,
+                        // Use this to calculuate t from Xt = X_0 + t * dir_x => Xt - X_0 = t * dir_x => t = (Xt - X_0) / dir_x
+                        let t_me = (left_x - self.source.0) / dir.0;
+                        if t_me < 0 || t_me > self.len() {
+                            return Points::Empty;
+                        }
+                        let left_y = self.source.1 + t_me * dir.1;
+                        let t_them = (left_x - other.source.0) / dir.0;
+                        if t_them < 0 || t_them > other.len() {
+                            return Points::Empty;
+                        }
+                        let points = right_x - left_x;
+
+                        Points::Diagonally(left_x, left_y, points, dir)
+                    } else {
+                        Points::Empty
+                    }
+                } else {
+                    let t_me = -self.source.1 / dir.1;
+                    let a_me = dir.1 / dir.0; // -1 or 1
+                    let b_me = -(self.source.0 + t_me * dir.0) * a_me;
+                    let t_them = -other.source.1 / their_dir.1;
+                    let a_them = their_dir.1 / their_dir.0; // -1 or 1
+                    let b_them = -(other.source.0 + t_them * their_dir.0) * a_them;
+
+                    // We know that one slope is negative and the other positive, so adding the
+                    // equations simplifies to:
+                    // 2y = b_them + b_me => y = (b_them + b_me) / 2
+                    let b_total = b_them + b_me;
+                    if b_total % 2 == 1 {
+                        // If this happens, it's because of this scenario:
+                        // #..#
+                        // .##.
+                        // .##.
+                        // #..#
+                        // Where the lines don't actually intersect
+                        return Points::Empty;
+                    }
+                    let y = b_total / 2;
+                    let top = min(
+                        max(self.source.1, self.dest.1),
+                        max(other.source.1, other.dest.1),
+                    );
+                    let bot = max(
+                        min(self.source.1, self.dest.1),
+                        min(other.source.1, other.dest.1),
+                    );
+                    let left = max(
+                        min(self.source.0, self.dest.0),
+                        min(other.source.0, other.dest.0),
+                    );
+                    let right = min(
+                        max(self.source.0, self.dest.0),
+                        max(other.source.0, other.dest.0),
+                    );
+                    let t = (y - self.source.1) / dir.1;
+                    let x = self.source.0 + t * dir.0;
+
+                    if (bot..=top).contains(&y) && (left..=right).contains(&x) {
+                        Points::Single(x, y)
+                    } else {
+                        Points::Empty
+                    }
+                }
+            }
+            _ => Points::Empty,
         }
     }
 }
 
+#[derive(Eq, PartialEq, Debug)]
 enum Points {
     Horizontally(i32, RangeInclusive<i32>),
     Vertically(i32, RangeInclusive<i32>),
     Single(i32, i32),
+    Diagonally(i32, i32, i32, (i32, i32)),
     Empty,
 }
 
 impl Points {
+    #[cfg(test)]
     fn count(&mut self) -> usize {
         use Points::*;
         match self {
             Horizontally(_, r) => r.count(),
             Vertically(_, r) => r.count(),
             Single(_, _) => 1,
+            Diagonally(_, _, steps, _) => (0..=*steps).count(),
             Empty => 0,
-        }
-    }
-}
-
-struct LineIterator<'a> {
-    line: &'a Line,
-    point: (i32, i32),
-    dir: (i32, i32),
-    exhausted: bool,
-}
-
-impl<'a> Iterator for LineIterator<'a> {
-    type Item = (i32, i32);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.exhausted {
-            None
-        } else {
-            let out = self.point;
-            if out == self.line.dest {
-                self.exhausted = true;
-            }
-            self.point = (self.point.0 + self.dir.0, self.point.1 + self.dir.1);
-            Some(out)
         }
     }
 }
@@ -197,33 +280,7 @@ fn parse_lines(input: &str) -> Result<Vec<Line>> {
         .collect()
 }
 
-fn solve(lines: &Vec<Line>) -> usize {
-    let sets: Vec<_> = lines
-        .into_par_iter()
-        .enumerate()
-        .map(|(i, line)| {
-            let mut points: HashSet<(i32, i32)> = HashSet::default();
-            let pointset: HashSet<_> = line.iter().collect();
-            for other in &lines[i + 1..] {
-                let next: HashSet<_> = other.iter().collect();
-                points.extend(pointset.intersection(&next));
-            }
-            points
-        })
-        .collect();
-    let mut points: HashSet<(i32, i32)> = HashSet::default();
-    for pointset in sets {
-        points.extend(pointset.iter())
-    }
-    points.len()
-}
-
-pub fn part_1(input: &str) -> Result<String> {
-    let lines = parse_lines(input)?;
-    let lines = lines
-        .into_iter()
-        .filter(|line| line.straight())
-        .collect_vec();
+fn points_intersection(lines: &Vec<Line>) -> HashSet<(i32, i32)> {
     let mut pointset = HashSet::default();
     for i in 0..lines.len() {
         for j in (i + 1)..lines.len() {
@@ -234,11 +291,28 @@ pub fn part_1(input: &str) -> Result<String> {
                 Points::Single(x, y) => {
                     pointset.insert((x, y));
                 }
+                Points::Diagonally(x0, y0, steps, (dx, dy)) => {
+                    pointset.extend((0..=steps).map(|t| (x0 + dx * t, y0 + dy * t)))
+                }
                 Points::Empty => {}
             }
         }
     }
-    let sol = pointset.len();
+    pointset
+}
+
+fn solve(lines: &Vec<Line>) -> usize {
+    let ps = points_intersection(lines);
+    ps.len()
+}
+
+pub fn part_1(input: &str) -> Result<String> {
+    let lines = parse_lines(input)?;
+    let lines = lines
+        .into_iter()
+        .filter(|line| line.straight())
+        .collect_vec();
+    let sol = solve(&lines);
     Ok(format!("{sol}"))
 }
 
@@ -313,6 +387,62 @@ pub mod tests {
     }
 
     #[test]
+    fn test_diag_millionth_case() {
+        let left = Line {
+            source: (324, 221),
+            dest: (911, 808),
+        };
+        let right = Line {
+            source: (161, 890),
+            dest: (808, 243),
+        };
+        assert_eq!(left.intersection(&right), Points::Single(577, 474));
+    }
+
+    #[test]
+    fn test_diagonals() {
+        let left = Line {
+            source: (324, 221),
+            dest: (911, 808),
+        };
+        let right = Line {
+            source: (66, 936),
+            dest: (941, 61),
+        };
+        assert_eq!(left.intersection(&right).count(), 0);
+        let left = Line {
+            source: (2, 2),
+            dest: (2, 1),
+        };
+        let right = Line {
+            source: (0, 0),
+            dest: (8, 8),
+        };
+        assert_eq!(left.intersection(&right).count(), 1);
+        let left = Line {
+            source: (7, 0),
+            dest: (7, 4),
+        };
+        let right = Line {
+            source: (5, 5),
+            dest: (8, 2),
+        };
+        assert_eq!(left.intersection(&right).count(), 1);
+        let left = Line {
+            source: (10, 10),
+            dest: (30, 30),
+        };
+        let right = Line {
+            source: (11, 11),
+            dest: (15, 15),
+        };
+        assert_eq!(left.intersection(&right).count(), 5);
+        assert_eq!(right.intersection(&left).count(), 5);
+        let points = left.intersection(&right);
+        assert_eq!(points, Points::Diagonally(11, 11, 4, (1, 1)));
+    }
+
+    #[test]
     fn test_vertical_horizontal() {
         let left = Line {
             source: (0, 0),
@@ -336,6 +466,19 @@ pub mod tests {
         };
         assert_eq!(left.intersection(&right).count(), 1);
         assert_eq!(right.intersection(&left).count(), 1);
+    }
+
+    #[test]
+    fn test_another_hard_case() {
+        let left = Line {
+            source: (62, 949),
+            dest: (973, 38),
+        };
+        let right = Line {
+            source: (55, 956),
+            dest: (849, 162),
+        };
+        assert_eq!(left.intersection(&right).count(), 788);
     }
 
     #[test]
@@ -365,16 +508,6 @@ pub mod tests {
             }
         );
         assert_eq!(lines.len(), 10);
-    }
-
-    #[test]
-    fn test_iterator() {
-        let line = Line {
-            source: (0, 9),
-            dest: (5, 9),
-        };
-        let points: Vec<_> = line.iter().collect();
-        assert_eq!(points, vec![(0, 9), (1, 9), (2, 9), (3, 9), (4, 9), (5, 9)]);
     }
 
     const EXAMPLE: &str = "0,9 -> 5,9
