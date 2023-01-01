@@ -28,6 +28,14 @@ impl Cave {
             Cave::Large(label)
         }
     }
+    fn bitpattern(&self) -> u64 {
+        assert!(self.idx() <= 63);
+        1 << (self.idx() as u64)
+    }
+    fn is_in(&self, path: u64) -> bool {
+        let pat = self.bitpattern();
+        (pat & path) == pat
+    }
 }
 
 type Graph = Vec<Vec<Cave>>;
@@ -40,10 +48,10 @@ struct Search<'a> {
     end: Cave,
 }
 
-fn options<'a>(graph: &'a Graph, vtx: &'a Cave, path: &[&'a Cave]) -> Vec<&'a Cave> {
+fn options<'a>(graph: &'a Graph, vtx: &'a Cave, path: u64) -> Vec<&'a Cave> {
     graph[vtx.idx()]
         .iter()
-        .filter(|&option: &&Cave| option.is_large() || !path.contains(&option))
+        .filter(|&option: &&Cave| option.is_large() || !option.is_in(path))
         .collect_vec()
 }
 
@@ -65,6 +73,7 @@ fn parse_graph(input: &str) -> Search {
             }
             let left = *labels.get(vtx1).unwrap();
             let right = *labels.get(vtx2).unwrap();
+            assert!(left <= 63 && right <= 63);
             graph[left].push(Cave::new(vtx2, right));
             graph[right].push(Cave::new(vtx1, left));
         }
@@ -81,51 +90,40 @@ fn parse_graph(input: &str) -> Search {
 
 fn dfs_count(search: &Search) -> usize {
     let mut completed_paths = 0;
-    let mut stack = vec![vec![&search.start]];
-    while let Some(path) = stack.pop() {
+    let init_path = 0;
+    let mut stack = vec![(&search.start, init_path)];
+    while let Some((cave, path)) = stack.pop() {
         // Can not fail, path can't be empty
-        if let Some(&cave) = path.last() {
-            if cave == &search.end {
-                completed_paths += 1;
-            } else {
-                for next_place in options(&search.graph, cave, &path) {
-                    let mut next_path = path.iter().copied().collect_vec();
-                    next_path.push(next_place);
-                    stack.push(next_path);
-                }
+        if cave == &search.end {
+            completed_paths += 1;
+        } else {
+            for next_place in options(&search.graph, cave, path) {
+                stack.push((next_place, path | cave.bitpattern()));
             }
         }
     }
     completed_paths
 }
 
-fn options_dup_once<'a>(
-    graph: &'a Graph,
-    vtx: &'a Cave,
-    path: &[&'a Cave],
-) -> Vec<(bool, &'a Cave)> {
+fn options_dup_once<'a>(graph: &'a Graph, vtx: &'a Cave, path: u64) -> Vec<(bool, &'a Cave)> {
     graph[vtx.idx()]
         .iter()
-        .map(|cave| (path.contains(&cave) && cave.is_small(), cave))
+        .map(|cave| (cave.is_in(path) && cave.is_small(), cave))
         .collect_vec()
 }
 
 fn dfs_count_dup_once(search: &Search) -> usize {
     let mut completed_paths = 0;
-    let mut stack = vec![(false, vec![&search.start])];
-    while let Some((has_dup, path)) = stack.pop() {
-        if let Some(&cave) = path.last() {
-            if cave == &search.end {
-                completed_paths += 1;
-            } else {
-                for (would_dup, next_place) in options_dup_once(&search.graph, cave, &path) {
-                    if next_place == &search.start || (would_dup && has_dup) {
-                        continue;
-                    } else {
-                        let mut next_path = path.iter().copied().collect_vec();
-                        next_path.push(next_place);
-                        stack.push((would_dup || has_dup, next_path));
-                    }
+    let mut stack = vec![(false, &search.start, 0u64)];
+    while let Some((has_dup, cave, path)) = stack.pop() {
+        if cave == &search.end {
+            completed_paths += 1;
+        } else {
+            for (would_dup, next_place) in options_dup_once(&search.graph, cave, path) {
+                if next_place == &search.start || (would_dup && has_dup) {
+                    continue;
+                } else {
+                    stack.push((would_dup || has_dup, next_place, path | cave.bitpattern()));
                 }
             }
         }
