@@ -48,13 +48,6 @@ struct Search<'a> {
     end: Cave,
 }
 
-fn options<'a>(graph: &'a Graph, vtx: &'a Cave, path: u64) -> Vec<&'a Cave> {
-    graph[vtx.idx()]
-        .iter()
-        .filter(|&option: &&Cave| option.is_large() || !option.is_in(path))
-        .collect_vec()
-}
-
 fn parse_graph(input: &str) -> Search {
     let mut labels: HashMap<_, usize> = HashMap::new();
     let mut idx = 0;
@@ -90,26 +83,21 @@ fn parse_graph(input: &str) -> Search {
 
 fn dfs_count(search: &Search) -> usize {
     let mut completed_paths = 0;
-    let init_path = 0;
-    let mut stack = vec![(&search.start, init_path)];
+    let mut stack = vec![(&search.start, 0)];
     while let Some((cave, path)) = stack.pop() {
-        // Can not fail, path can't be empty
         if cave == &search.end {
             completed_paths += 1;
         } else {
-            for next_place in options(&search.graph, cave, path) {
+            let graph = &search.graph;
+            for next_place in graph[cave.idx()]
+                .iter()
+                .filter(|&option: &&Cave| option.is_large() || !option.is_in(path))
+            {
                 stack.push((next_place, path | cave.bitpattern()));
             }
         }
     }
     completed_paths
-}
-
-fn options_dup_once<'a>(graph: &'a Graph, vtx: &'a Cave, path: u64) -> Vec<(bool, &'a Cave)> {
-    graph[vtx.idx()]
-        .iter()
-        .map(|cave| (cave.is_in(path) && cave.is_small(), cave))
-        .collect_vec()
 }
 
 fn dfs_count_dup_once(search: &Search) -> usize {
@@ -119,7 +107,11 @@ fn dfs_count_dup_once(search: &Search) -> usize {
         if cave == &search.end {
             completed_paths += 1;
         } else {
-            for (would_dup, next_place) in options_dup_once(&search.graph, cave, path) {
+            let graph = &search.graph;
+            for (would_dup, next_place) in graph[cave.idx()]
+                .iter()
+                .map(|cave| (cave.is_in(path) && cave.is_small(), cave))
+            {
                 if next_place == &search.start || (would_dup && has_dup) {
                     continue;
                 } else {
