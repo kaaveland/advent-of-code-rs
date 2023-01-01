@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use itertools::Itertools;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Map {
