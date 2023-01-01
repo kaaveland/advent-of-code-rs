@@ -100,22 +100,20 @@ fn solve(lines: &Vec<Line>) -> usize {
     points.len()
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let lines = parse_lines(input)?;
     let lines = lines
         .into_iter()
         .filter(|line| line.straight())
         .collect_vec();
     let sol = solve(&lines);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let lines = parse_lines(input)?;
     let sol = solve(&lines);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
 #[cfg(test)]

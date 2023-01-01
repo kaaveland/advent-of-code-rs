@@ -85,16 +85,14 @@ fn solve_2(input: &str) -> usize {
     v[v.len() / 2]
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let score = solve_1(input);
-    println!("{score}");
-    Ok(())
+    Ok(format!("{score}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let score = solve_2(input);
-    println!("{score}");
-    Ok(())
+    Ok(format!("{score}"))
 }
 
 #[cfg(test)]

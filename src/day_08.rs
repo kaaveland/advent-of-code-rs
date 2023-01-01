@@ -1,15 +1,14 @@
 use anyhow::{Context, Result};
 use fxhash::{FxHashMap as HashMap, FxHashSet as HashSet};
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let examples = parse(input)?;
     let sol: Vec<u8> = examples.iter().flat_map(solve).collect();
     let n = sol.iter().filter(|n| [1, 4, 7, 8].contains(n)).count();
-    println!("{n}");
-    Ok(())
+    Ok(format!("{n}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let examples = parse(input)?;
     let sol: Vec<Vec<u8>> = examples.iter().map(solve).collect();
     let n = sol.iter().fold(0, |s, n| {
@@ -18,8 +17,7 @@ pub fn part_2(input: &str) -> Result<()> {
             .fold((1000, 0u32), |(f, s), n| (f / 10, (*n as u32) * f + s))
             .1
     });
-    println!("{n}");
-    Ok(())
+    Ok(format!("{n}"))
 }
 
 type Example<'a> = (Vec<&'a [u8]>, Vec<&'a [u8]>);

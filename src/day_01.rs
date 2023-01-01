@@ -69,16 +69,14 @@ fn solve_2(depths: &[i32]) -> usize {
         .count()
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let depths = parse(input)?;
     let sol = solve_1(&depths);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let depths = parse(input)?;
     let sol = solve_2(&depths);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }

@@ -67,10 +67,9 @@ fn solve_1(input: &str) -> Result<i64> {
     Ok(gamma * epsilon)
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let r = solve_1(input)?;
-    println!("{r}");
-    Ok(())
+    Ok(format!("{r}"))
 }
 
 fn bin2dec(inp: &Vec<char>) -> i64 {
@@ -122,8 +121,7 @@ fn solve_2(input: &str) -> Result<i64> {
     Ok(o2_rating * co2_rating)
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let r = solve_2(input)?;
-    println!("{r}");
-    Ok(())
+    Ok(format!("{r}"))
 }

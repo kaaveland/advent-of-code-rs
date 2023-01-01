@@ -133,17 +133,15 @@ fn dfs_count_dup_once(search: &Search) -> usize {
     completed_paths
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let search = parse_graph(input);
     let paths = dfs_count(&search);
-    println!("{paths}");
-    Ok(())
+    Ok(format!("{paths}"))
 }
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let search = parse_graph(input);
     let paths = dfs_count_dup_once(&search);
-    println!("{paths}");
-    Ok(())
+    Ok(format!("{paths}"))
 }
 
 #[cfg(test)]

@@ -132,18 +132,16 @@ fn solve_2(boards: &Vec<Board>, seq: &Vec<u16>) -> u32 {
     *scores.last().unwrap_or(&0)
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let (seq, boards) = parse(input)?;
     let sol = solve_1(&boards, &seq);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let (seq, boards) = parse(input)?;
     let sol = solve_2(&boards, &seq);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
 #[cfg(test)]

@@ -44,7 +44,9 @@ fn main() -> Result<()> {
         Some(("data", _)) => dl_data::all_days(),
         Some(("run", sub_matches)) => {
             let day = *sub_matches.get_one::<u8>("day").unwrap();
-            timed_solution(day)
+            let rep = timed_solution(day)?;
+            println!("{}", rep);
+            Ok(())
         }
         Some(("runall", _)) => timed_all_solutions(),
         _ => unreachable!(),

@@ -125,16 +125,14 @@ fn solve_2(input: &str) -> Result<usize> {
     Ok(s)
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let s = solve_1(input)?;
-    println!("{s}");
-    Ok(())
+    Ok(format!("{s}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let s = solve_2(input)?;
-    println!("{s}");
-    Ok(())
+    Ok(format!("{s}"))
 }
 
 #[cfg(test)]

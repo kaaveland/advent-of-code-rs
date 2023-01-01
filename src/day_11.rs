@@ -93,21 +93,19 @@ fn step_octopi(map: &mut Map) -> usize {
     flashes.iter().filter(|t| **t).count()
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let mut map = parse_map(input)?;
     let flashes: usize = (0..100).map(|_| step_octopi(&mut map)).sum();
-    println!("{flashes}");
-    Ok(())
+    Ok(format!("{flashes}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let mut map = parse_map(input)?;
     let mut i = 1;
     while step_octopi(&mut map) != map.octopi.len() {
         i += 1;
     }
-    println!("{i}");
-    Ok(())
+    Ok(format!("{i}"))
 }
 
 #[cfg(test)]

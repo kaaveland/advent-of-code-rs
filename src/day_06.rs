@@ -26,19 +26,16 @@ fn lantern_fishes(initial: &[u8], steps: usize) -> u64 {
     fishes_in_state.iter().sum()
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let fishes = parse(input.trim())?;
     let sol = lantern_fishes(&fishes, 80);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let fishes = parse(input.trim())?;
     let sol = lantern_fishes(&fishes, 256);
-    println!("{sol}");
-
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
 #[cfg(test)]

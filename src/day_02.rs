@@ -81,16 +81,14 @@ fn solve_2(moves: &[Move]) -> i64 {
     depth * hor_pos
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let moves = parse(input)?;
     let sol = solve_1(&moves);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let moves = parse(input)?;
     let sol = solve_2(&moves);
-    println!("{sol}");
-    Ok(())
+    Ok(format!("{sol}"))
 }

@@ -25,14 +25,12 @@ fn solve(input: &str, cost_fn: fn(i64, i64) -> i64) -> Result<i64> {
     Ok((min..=max).map(cost).min().unwrap_or(0))
 }
 
-pub fn part_1(input: &str) -> Result<()> {
+pub fn part_1(input: &str) -> Result<String> {
     let fuel = solve(input, horizontal_distance)?;
-    println!("{fuel}");
-    Ok(())
+    Ok(format!("{fuel}"))
 }
 
-pub fn part_2(input: &str) -> Result<()> {
+pub fn part_2(input: &str) -> Result<String> {
     let fuel = solve(input, fuel_cost)?;
-    println!("{fuel}");
-    Ok(())
+    Ok(format!("{fuel}"))
 }
