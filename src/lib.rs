@@ -18,6 +18,7 @@ pub mod day_09;
 pub mod day_10;
 pub mod day_11;
 pub mod day_12;
+pub mod day_13;
 pub mod dl_data;
 
 pub struct Solution {
@@ -149,8 +150,8 @@ pub const SOLUTIONS: [Solution; 25] = [
     },
     Solution {
         day_no: 13,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_13::part_1,
+        part_2: day_13::part_2,
     },
     Solution {
         day_no: 14,
