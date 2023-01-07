@@ -100,31 +100,22 @@ impl Rotation {
     fn possible() -> Vec<Rotation> {
         use AxisInterpretation::*;
 
-        vec![
-            (X(false), Y(false), Z(false)),
-            (X(false), Y(false), Z(true)),
-            (X(false), Y(true), Z(false)),
-            (X(false), Y(true), Z(true)),
-            (X(true), Y(false), Z(false)),
-            (X(true), Y(false), Z(true)),
-            (X(true), Y(true), Z(false)),
-            (X(true), Y(true), Z(true)),
-        ]
-        .into_iter()
-        .flat_map(|dims| {
-            [
-                // permutations of 012 -> 012, 021, 102, 120, 201, 210
-                (dims.0, dims.1, dims.2),
-                (dims.0, dims.2, dims.1),
-                (dims.1, dims.0, dims.2),
-                (dims.1, dims.2, dims.0),
-                (dims.2, dims.0, dims.1),
-                (dims.2, dims.1, dims.0),
-            ]
-            .into_iter()
-        })
-        .map(|(x, y, z)| Rotation { x, y, z })
-        .collect()
+        (0..8)
+            .map(|n| (X(n & 1 == 1), Y(n & 2 == 2), Z(n & 4 == 4)))
+            .flat_map(|dims| {
+                [
+                    // permutations of 012 -> 012, 021, 102, 120, 201, 210
+                    (dims.0, dims.1, dims.2),
+                    (dims.0, dims.2, dims.1),
+                    (dims.1, dims.0, dims.2),
+                    (dims.1, dims.2, dims.0),
+                    (dims.2, dims.0, dims.1),
+                    (dims.2, dims.1, dims.0),
+                ]
+                .into_iter()
+            })
+            .map(|(x, y, z)| Rotation { x, y, z })
+            .collect()
     }
     fn rotate(&self, point: &Point) -> Point {
         (self.x.get(point), self.y.get(point), self.z.get(point))
