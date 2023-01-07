@@ -30,10 +30,10 @@ fn parse(input: &str) -> Result<Vec<Scanner>> {
             let beacons: Result<Vec<_>> = lines
                 .map(|line| {
                     let (x, rest) = line
-                        .split_once(",")
+                        .split_once(',')
                         .with_context(|| anyhow!("Invalid beacon: {line}"))?;
                     let (y, z) = rest
-                        .split_once(",")
+                        .split_once(',')
                         .with_context(|| anyhow!("Invalid beacon: {line}"))?;
                     let x = x.parse::<CoordSize>()?;
                     let y = y.parse::<CoordSize>()?;
@@ -154,7 +154,7 @@ fn borders(left: &Scanner, right: &Scanner) -> bool {
     left.intersection(&right).count() >= 66
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone)]
 struct Translation {
     rotation: Rotation,
     translation: (CoordSize, CoordSize, CoordSize),
@@ -166,13 +166,14 @@ impl Translation {
         add(&rot, &self.translation)
     }
 
-    fn to_all<'a>(&self, points: &mut impl Iterator<Item = &'a Point>) -> Vec<Point> {
+    fn on_all<'a>(&self, points: &mut impl Iterator<Item = &'a Point>) -> Vec<Point> {
         points.map(|p| self.apply(p)).collect()
     }
+
     fn reorient(&self, scanner: &Scanner) -> Scanner {
         Scanner {
             id: scanner.id,
-            relative_beacons: self.to_all(&mut scanner.relative_beacons.iter()),
+            relative_beacons: self.on_all(&mut scanner.relative_beacons.iter()),
             distances_squared: scanner.distances_squared.clone(),
         }
     }
@@ -275,18 +276,21 @@ fn connect(
     }
 }
 
-fn connect_scanners(scanners: &[Scanner]) -> Vec<Scanner> {
+fn connect_scanners(scanners: &[Scanner]) -> (Vec<Scanner>, Vec<Point>) {
     let mut work = scanners.iter().rev().clone().collect_vec();
     let mut done = vec![work.pop().unwrap().clone()];
     let mut place = 0;
+    let mut scanner_locations = vec![(0, 0, 0)];
     let allowed_rotations = Rotation::possible();
 
     while !work.is_empty() {
         let to_add = work
             .iter()
             .filter_map(|candidate| {
-                connect(&done[place], candidate, &allowed_rotations)
-                    .map(|translation| translation.reorient(candidate))
+                connect(&done[place], candidate, &allowed_rotations).map(|translation| {
+                    scanner_locations.push(translation.translation);
+                    translation.reorient(candidate)
+                })
             })
             .collect_vec();
         work.retain(|scanner| !to_add.iter().map(|s| s.id).contains(&scanner.id));
@@ -294,12 +298,12 @@ fn connect_scanners(scanners: &[Scanner]) -> Vec<Scanner> {
         place += 1;
     }
 
-    done
+    (done, scanner_locations)
 }
 
 pub fn part_1(input: &str) -> Result<String> {
     let scanners = parse(input)?;
-    let connected_scanners = connect_scanners(&scanners);
+    let (connected_scanners, _) = connect_scanners(&scanners);
 
     let beacons: HashSet<_> = connected_scanners
         .iter()
@@ -310,18 +314,37 @@ pub fn part_1(input: &str) -> Result<String> {
     Ok(format!("{}", beacons.len()))
 }
 
-pub fn part_2(_input: &str) -> Result<String> {
-    Ok("Not yet implemented".into())
+fn manhattan(points: (&Point, &Point)) -> CoordSize {
+    let (lhs, rhs) = points;
+    let dist = sub(lhs, rhs);
+    dist.0.abs() + dist.1.abs() + dist.2.abs()
+}
+
+fn max_manhattan(points: &[Point]) -> Option<CoordSize> {
+    points
+        .iter()
+        .cartesian_product(points.iter())
+        .map(manhattan)
+        .max()
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    let scanners = parse(input)?;
+    let (_, locations) = connect_scanners(&scanners);
+    let dist = max_manhattan(&locations);
+    dist.ok_or_else(|| anyhow!("Unable to find scanner locations"))
+        .map(|distance| format!("{distance}"))
 }
 
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use std::assert_eq;
 
     #[test]
     fn test_connect_scanners() {
         let scanners = parse(EXAMPLE).unwrap();
-        let reoriented = connect_scanners(&scanners);
+        let (reoriented, _) = connect_scanners(&scanners);
         let points: HashSet<_> = reoriented
             .iter()
             .flat_map(|scanner| scanner.relative_beacons.iter())
@@ -330,6 +353,13 @@ pub mod tests {
         assert_eq!(points.len(), 79);
     }
 
+    #[test]
+    fn test_manhattan_dist_scanners() {
+        let scanners = parse(EXAMPLE).unwrap();
+        let (_, locations) = connect_scanners(&scanners);
+        let dist = max_manhattan(&locations);
+        assert_eq!(dist, Some(3621));
+    }
     const EXAMPLE: &str = "--- scanner 0 ---
 404,-588,-901
 528,-643,409
