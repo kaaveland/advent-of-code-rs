@@ -101,6 +101,15 @@ impl Cuboid {
     }
 }
 
+// Turns out, it's very hard/annoying to take the difference
+// between two cuboids, but it's fast and easy to take their intersection
+// Suppose we have two cuboids A and B that intersect, then the total
+// volume we have is A.volume() - AB.volume() + B.volume()
+// The CuboidSet is a recursive data structure based on this idea
+// Whenever we add B to our total volume, we must subtract AB from A
+// But if AB intersects with AC that we already subtracted, we must
+// add back ABAC and so on. The CuboidSet is a tree of intersections
+// that should be subtracted/added to the level above
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct CuboidSet {
     me: Cuboid,
