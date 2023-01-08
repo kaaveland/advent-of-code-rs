@@ -24,25 +24,17 @@ impl BinaryIterator {
 }
 
 fn hex_char_for(ch: &u8) -> [bool; 4] {
-    match ch {
-        b'0' => [false, false, false, false],
-        b'1' => [false, false, false, true],
-        b'2' => [false, false, true, false],
-        b'3' => [false, false, true, true],
-        b'4' => [false, true, false, false],
-        b'5' => [false, true, false, true],
-        b'6' => [false, true, true, false],
-        b'7' => [false, true, true, true],
-        b'8' => [true, false, false, false],
-        b'9' => [true, false, false, true],
-        b'A' => [true, false, true, false],
-        b'B' => [true, false, true, true],
-        b'C' => [true, true, false, false],
-        b'D' => [true, true, false, true],
-        b'E' => [true, true, true, false],
-        b'F' => [true, true, true, true],
-        _ => panic!("Illegal char: {ch}"),
-    }
+    let ch_val = if *ch >= b'0' && *ch <= b'9' {
+        *ch - b'0'
+    } else {
+        (*ch - b'A') + 10u8
+    };
+    [
+        ch_val & 8 == 8,
+        ch_val & 4 == 4,
+        ch_val & 2 == 2,
+        ch_val & 1 == 1,
+    ]
 }
 
 #[derive(Eq, Debug, PartialEq)]
@@ -195,6 +187,7 @@ pub fn part_2(input: &str) -> Result<String> {
 pub mod tests {
     use super::*;
     use itertools::Itertools;
+    use std::{assert_eq, matches, vec};
 
     #[test]
     fn test_binary_iterator() {
