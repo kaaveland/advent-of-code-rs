@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use fxhash::FxHashMap as HashMap;
 use itertools::Itertools;
+use rayon::prelude::*;
 use std::cmp::{max, min};
 
 type Pixel = bool;
@@ -77,13 +78,12 @@ fn convolve(image: &Image, algorithm: &Algorithm, background: Pixel) -> Image {
             (min(ymin, *y), max(ymax, *y))
         });
     let (ymin, ymax) = (ymin - 1, ymax + 1);
-    let coords = (xmin..=xmax).cartesian_product(ymin..=ymax);
+    let coords = (xmin..=xmax).cartesian_product(ymin..=ymax).collect_vec();
     coords
-        .map(|(x, y)| {
+        .into_par_iter()
+        .filter_map(|(x, y)| {
             let kernel = convolution_kernel(image, (x, y), background);
-            lookup(&kernel, algorithm)
-                .map(|pixel| ((x, y), pixel))
-                .expect("Bad error")
+            lookup(&kernel, algorithm).map(|pixel| ((x, y), pixel))
         })
         .collect()
 }
