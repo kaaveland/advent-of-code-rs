@@ -52,43 +52,50 @@ impl Tile {
 const HALLWAY_SIZE: usize = 11;
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, Ord, PartialOrd)]
-struct State {
+struct State<const N: usize> {
     hallway: [Tile; HALLWAY_SIZE],
-    caves: [[Tile; 2]; 4],
+    caves: [[Tile; N]; 4],
 }
 
 const ENTERS_AT: [usize; 4] = [2, 4, 6, 8];
 
-impl State {
-    fn swapped(&self, hallway_tile: usize, cave_no: usize, cave_slot: usize) -> Self {
-        let mut new_hallway = self.hallway;
-        let mut new_caves = self.caves;
-        std::mem::swap(
-            &mut new_hallway[hallway_tile],
-            &mut new_caves[cave_no][cave_slot],
-        );
-        State {
-            hallway: new_hallway,
-            caves: new_caves,
-        }
-    }
-    fn from(tiles: &[Vec<Tile>]) -> Self {
-        let mut hallway = [Tile::Empty; 11];
-        let mut caves = [[Tile::Empty; 2]; 4];
-        tiles[0]
-            .iter()
-            .enumerate()
-            .for_each(|(i, t)| hallway[i] = *t);
-        tiles[1..].iter().enumerate().for_each(|(i, r)| {
-            r.iter().enumerate().for_each(|(c, t)| {
-                caves[c][i] = *t;
-            })
-        });
-        State { hallway, caves }
+fn swapped<const N: usize>(
+    state: &State<N>,
+    hallway_tile: usize,
+    cave_no: usize,
+    cave_slot: usize,
+) -> State<N> {
+    let mut new_hallway = state.hallway;
+    let mut new_caves = state.caves;
+    std::mem::swap(
+        &mut new_hallway[hallway_tile],
+        &mut new_caves[cave_no][cave_slot],
+    );
+    State {
+        hallway: new_hallway,
+        caves: new_caves,
     }
 }
 
-fn from_cave_to_hallway(state: &State, cost_so_far: usize) -> Vec<(usize, State)> {
+fn state_from(tiles: &[Vec<Tile>]) -> State<2> {
+    let mut hallway = [Tile::Empty; 11];
+    let mut caves = [[Tile::Empty; 2]; 4];
+    tiles[0]
+        .iter()
+        .enumerate()
+        .for_each(|(i, t)| hallway[i] = *t);
+    tiles[1..].iter().enumerate().for_each(|(i, r)| {
+        r.iter().enumerate().for_each(|(c, t)| {
+            caves[c][i] = *t;
+        })
+    });
+    State { hallway, caves }
+}
+
+fn from_cave_to_hallway<const N: usize>(
+    state: &State<N>,
+    cost_so_far: usize,
+) -> Vec<(usize, State<N>)> {
     use Tile::*;
 
     let mut moves = vec![];
@@ -121,7 +128,7 @@ fn from_cave_to_hallway(state: &State, cost_so_far: usize) -> Vec<(usize, State)
                 if !ENTERS_AT.contains(&right) {
                     moves.push((
                         distance * tile_cost + cost_so_far,
-                        state.swapped(right, cave_no, height),
+                        swapped(&state, right, cave_no, height),
                     ));
                 }
                 right += 1;
@@ -133,7 +140,7 @@ fn from_cave_to_hallway(state: &State, cost_so_far: usize) -> Vec<(usize, State)
                 if !ENTERS_AT.contains(&(left as usize)) {
                     moves.push((
                         distance * tile_cost + cost_so_far,
-                        state.swapped(left as usize, cave_no, height),
+                        swapped(&state, left as usize, cave_no, height),
                     ));
                 }
                 left -= 1;
@@ -146,7 +153,10 @@ fn from_cave_to_hallway(state: &State, cost_so_far: usize) -> Vec<(usize, State)
     moves
 }
 
-fn from_hallway_to_cave(state: &State, cost_so_far: usize) -> Vec<(usize, State)> {
+fn from_hallway_to_cave<const N: usize>(
+    state: &State<N>,
+    cost_so_far: usize,
+) -> Vec<(usize, State<N>)> {
     use Tile::*;
 
     let mut moves = vec![];
@@ -183,14 +193,14 @@ fn from_hallway_to_cave(state: &State, cost_so_far: usize) -> Vec<(usize, State)
             let cost = (hallway_tiles + 1 + place) * tile_cost;
             moves.push((
                 cost + cost_so_far,
-                state.swapped(src, amphipod.cave(), place),
+                swapped(&state, src, amphipod.cave(), place),
             ));
         }
     }
     moves
 }
 
-fn is_finished(state: &State) -> bool {
+fn is_finished<const N: usize>(state: &State<N>) -> bool {
     use Tile::*;
     for i in 0..state.caves.len() {
         for height in 0..state.caves[i].len() {
@@ -206,10 +216,7 @@ fn is_finished(state: &State) -> bool {
     true
 }
 
-fn shortest_path(initial: &State) -> usize {
-    use Amphipod::*;
-    use Tile::*;
-
+fn shortest_path<const N: usize>(initial: &State<N>) -> usize {
     let mut cache = HashMap::default();
     cache.insert(*initial, 0usize);
     let mut work = BinaryHeap::new();
@@ -234,17 +241,7 @@ fn shortest_path(initial: &State) -> usize {
             }
         }
     }
-    let finished = State {
-        hallway: [Empty; HALLWAY_SIZE],
-        caves: [
-            [Contains(Amber); 2],
-            [Contains(Bronze); 2],
-            [Contains(Copper); 2],
-            [Contains(Desert); 2],
-        ],
-    };
-    println!("Investigated {} states", cache.len());
-    *cache.get(&finished).expect("Not found")
+    panic!("Unable to find path")
 }
 
 fn parse(input: &str) -> Vec<Vec<Tile>> {
@@ -272,7 +269,7 @@ fn parse(input: &str) -> Vec<Vec<Tile>> {
 
 pub fn part_1(input: &str) -> Result<String> {
     let board = parse(input);
-    let initial = State::from(&board);
+    let initial = state_from(&board);
     let sol = shortest_path(&initial);
     Ok(format!("{sol}"))
 }
@@ -288,7 +285,7 @@ pub mod tests {
     #[test]
     fn test_parse() {
         let board = parse(EXAMPLE);
-        let state = State::from(&board);
+        let state = state_from(&board);
         let sol = shortest_path(&state);
         assert_eq!(sol, 12521);
     }
