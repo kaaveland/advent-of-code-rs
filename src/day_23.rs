@@ -274,8 +274,35 @@ pub fn part_1(input: &str) -> Result<String> {
     Ok(format!("{sol}"))
 }
 
-pub fn part_2(_input: &str) -> Result<String> {
-    Ok("Not implemented yet".into())
+fn part_2_state_from(board: &[Vec<Tile>]) -> State<4> {
+    use Amphipod::*;
+    use Tile::Contains;
+
+    let state_2 = state_from(&board);
+    let mut state_4 = State {
+        hallway: state_2.hallway,
+        caves: [[Tile::Empty; 4]; 4],
+    };
+    let additional_amphipods = [
+        [Desert, Desert],
+        [Copper, Bronze],
+        [Bronze, Amber],
+        [Amber, Copper],
+    ];
+    for cave_no in 0..4 {
+        state_4.caves[cave_no][0] = state_2.caves[cave_no][0];
+        state_4.caves[cave_no][1] = Contains(additional_amphipods[cave_no][0]);
+        state_4.caves[cave_no][2] = Contains(additional_amphipods[cave_no][1]);
+        state_4.caves[cave_no][3] = state_2.caves[cave_no][1];
+    }
+    state_4
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    let board = parse(input);
+    let initial = part_2_state_from(&board);
+    let sol = shortest_path(&initial);
+    Ok(format!("{sol}"))
 }
 
 #[cfg(test)]
@@ -288,6 +315,14 @@ pub mod tests {
         let state = state_from(&board);
         let sol = shortest_path(&state);
         assert_eq!(sol, 12521);
+    }
+
+    #[test]
+    fn test_part2() {
+        let board = parse(EXAMPLE);
+        let state = part_2_state_from(&board);
+        let sol = shortest_path(&state);
+        assert_eq!(44169, sol);
     }
 
     #[test]
