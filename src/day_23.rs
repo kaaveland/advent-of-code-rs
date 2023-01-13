@@ -95,10 +95,9 @@ fn state_from(tiles: &[Vec<Tile>]) -> State<2> {
 fn from_cave_to_hallway<const N: usize>(
     state: &State<N>,
     cost_so_far: usize,
-) -> Vec<(usize, State<N>)> {
+    moves: &mut Vec<(usize, State<N>)>,
+) {
     use Tile::*;
-
-    let mut moves = vec![];
 
     for cave_no in 0..state.caves.len() {
         let expect = VARIANTS[cave_no];
@@ -149,17 +148,14 @@ fn from_cave_to_hallway<const N: usize>(
             panic!("Logic bug: should have amphipod in {cave_no} at {height}")
         }
     }
-
-    moves
 }
 
 fn from_hallway_to_cave<const N: usize>(
     state: &State<N>,
     cost_so_far: usize,
-) -> Vec<(usize, State<N>)> {
+    moves: &mut Vec<(usize, State<N>)>,
+) {
     use Tile::*;
-
-    let mut moves = vec![];
 
     for src in 0..HALLWAY_SIZE {
         if let Contains(amphipod) = state.hallway[src] {
@@ -197,7 +193,6 @@ fn from_hallway_to_cave<const N: usize>(
             ));
         }
     }
-    moves
 }
 
 fn is_finished<const N: usize>(state: &State<N>) -> bool {
@@ -221,25 +216,23 @@ fn shortest_path<const N: usize>(initial: &State<N>) -> usize {
     cache.insert(*initial, 0usize);
     let mut work = BinaryHeap::new();
     work.push(Reverse((0, *initial)));
+    let mut moves = Vec::with_capacity(128);
 
     while let Some(Reverse((cost, state))) = work.pop() {
         if is_finished(&state) {
             return cost;
         }
-        for (next_cost, next_state) in from_hallway_to_cave(&state, cost) {
+        from_hallway_to_cave(&state, cost, &mut moves);
+        from_cave_to_hallway(&state, cost, &mut moves);
+
+        for (next_cost, next_state) in moves.iter() {
             let prev_cost = *cache.get(&next_state).unwrap_or(&usize::MAX);
-            if next_cost < prev_cost {
-                cache.insert(next_state, next_cost);
-                work.push(Reverse((next_cost, next_state)));
+            if *next_cost < prev_cost {
+                cache.insert(*next_state, *next_cost);
+                work.push(Reverse((*next_cost, *next_state)));
             }
         }
-        for (next_cost, next_state) in from_cave_to_hallway(&state, cost) {
-            let prev_cost = *cache.get(&next_state).unwrap_or(&usize::MAX);
-            if next_cost < prev_cost {
-                cache.insert(next_state, next_cost);
-                work.push(Reverse((next_cost, next_state)));
-            }
-        }
+        moves.clear();
     }
     panic!("Unable to find path")
 }
@@ -350,7 +343,9 @@ pub mod tests {
                 [Empty, Empty],
             ],
         };
-        assert_eq!(from_hallway_to_cave(&state, 0).len(), 1);
+        let mut moves = vec![];
+        from_hallway_to_cave(&state, 0, &mut moves);
+        assert_eq!(moves.len(), 1);
     }
 
     const EXAMPLE: &str = "#############
