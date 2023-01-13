@@ -127,7 +127,7 @@ fn from_cave_to_hallway<const N: usize>(
                 if !ENTERS_AT.contains(&right) {
                     moves.push((
                         distance * tile_cost + cost_so_far,
-                        swapped(&state, right, cave_no, height),
+                        swapped(state, right, cave_no, height),
                     ));
                 }
                 right += 1;
@@ -139,7 +139,7 @@ fn from_cave_to_hallway<const N: usize>(
                 if !ENTERS_AT.contains(&(left as usize)) {
                     moves.push((
                         distance * tile_cost + cost_so_far,
-                        swapped(&state, left as usize, cave_no, height),
+                        swapped(state, left as usize, cave_no, height),
                     ));
                 }
                 left -= 1;
@@ -189,7 +189,7 @@ fn from_hallway_to_cave<const N: usize>(
             let cost = (hallway_tiles + 1 + place) * tile_cost;
             moves.push((
                 cost + cost_so_far,
-                swapped(&state, src, amphipod.cave(), place),
+                swapped(state, src, amphipod.cave(), place),
             ));
         }
     }
@@ -226,7 +226,7 @@ fn shortest_path<const N: usize>(initial: &State<N>) -> usize {
         from_cave_to_hallway(&state, cost, &mut moves);
 
         for (next_cost, next_state) in moves.iter() {
-            let prev_cost = *cache.get(&next_state).unwrap_or(&usize::MAX);
+            let prev_cost = *cache.get(next_state).unwrap_or(&usize::MAX);
             if *next_cost < prev_cost {
                 cache.insert(*next_state, *next_cost);
                 work.push(Reverse((*next_cost, *next_state)));
@@ -271,7 +271,7 @@ fn part_2_state_from(board: &[Vec<Tile>]) -> State<4> {
     use Amphipod::*;
     use Tile::Contains;
 
-    let state_2 = state_from(&board);
+    let state_2 = state_from(board);
     let mut state_4 = State {
         hallway: state_2.hallway,
         caves: [[Tile::Empty; 4]; 4],
@@ -282,10 +282,10 @@ fn part_2_state_from(board: &[Vec<Tile>]) -> State<4> {
         [Bronze, Amber],
         [Amber, Copper],
     ];
-    for cave_no in 0..4 {
+    for (cave_no, additional) in additional_amphipods.into_iter().enumerate() {
         state_4.caves[cave_no][0] = state_2.caves[cave_no][0];
-        state_4.caves[cave_no][1] = Contains(additional_amphipods[cave_no][0]);
-        state_4.caves[cave_no][2] = Contains(additional_amphipods[cave_no][1]);
+        state_4.caves[cave_no][1] = Contains(additional[0]);
+        state_4.caves[cave_no][2] = Contains(additional[1]);
         state_4.caves[cave_no][3] = state_2.caves[cave_no][1];
     }
     state_4
