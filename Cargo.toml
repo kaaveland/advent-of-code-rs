@@ -23,4 +23,3 @@ features = ["blocking"]
 
 [dependencies.clap]
 version = "4"
-features = ["derive"]
