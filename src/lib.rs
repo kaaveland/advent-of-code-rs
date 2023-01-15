@@ -1,11 +1,11 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use itertools::Itertools;
 use rayon::prelude::*;
 use std::fs;
 use std::time::Instant;
-use year_2021::SOLUTIONS;
 
 pub mod year_2021;
+pub mod year_2022;
 
 pub mod dl_data;
 
@@ -14,6 +14,9 @@ pub struct Solution {
     part_1: fn(&str) -> Result<String>,
     part_2: fn(&str) -> Result<String>,
 }
+
+const YEARS: [(u16, [Solution; 25]); 2] =
+    [(2021, year_2021::SOLUTIONS), (2022, year_2022::SOLUTIONS)];
 
 pub fn not_implemented(_: &str) -> Result<String> {
     Ok("Not implemented yet".to_string())
@@ -36,7 +39,13 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
         fs::read_to_string(path.as_str())?
     };
 
-    let candidate = SOLUTIONS
+    let solution_set = &YEARS
+        .iter()
+        .find(|(y, _)| *y == year)
+        .with_context(|| anyhow!("No solutions for {year} yet"))?
+        .1;
+
+    let candidate = solution_set
         .iter()
         .find(|sol| sol.day_no == day)
         .context(format!("Error: no solution for day: {day}"))?;
@@ -54,10 +63,16 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
 
 pub fn timed_all_solutions(year: u16) -> Result<()> {
     let now = Instant::now();
-    println!("Run all implemented solutions");
+    let solution_set = &YEARS
+        .iter()
+        .find(|(y, _)| *y == year)
+        .with_context(|| anyhow!("No solutions for {year} yet"))?
+        .1;
+
+    println!("Run all implemented solutions for {year}");
     let mut outputs = vec![];
 
-    SOLUTIONS
+    solution_set
         .into_par_iter()
         .map(|sol| (sol.day_no, timed_solution(year, sol.day_no)))
         .collect_into_vec(&mut outputs);
