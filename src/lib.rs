@@ -9,6 +9,7 @@ pub mod year_2021;
 pub mod year_2022;
 
 pub mod dl_data;
+pub mod point_2d;
 
 pub struct Solution {
     day_no: u8,
@@ -21,6 +22,10 @@ const YEARS: [(u16, [Solution; 25]); 3] = [
     (2021, year_2021::SOLUTIONS),
     (2022, year_2022::SOLUTIONS),
 ];
+
+pub fn available_years() -> Vec<u16> {
+    YEARS.iter().map(|(y, _)| y).copied().sorted().collect()
+}
 
 pub fn not_implemented(_: &str) -> Result<String> {
     Ok("Not implemented yet".to_string())

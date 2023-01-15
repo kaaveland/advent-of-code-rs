@@ -1,10 +1,13 @@
 use anyhow::Result;
 use aoc::year_2021::SOLUTIONS;
-use aoc::{dl_data, timed_all_solutions, timed_solution};
+use aoc::{available_years, dl_data, timed_all_solutions, timed_solution};
 use clap::{arg, value_parser, Command};
 
 fn cli() -> Command {
     let max_solution: i64 = SOLUTIONS.len() as i64 + 1;
+    let ymin = *available_years().iter().min().unwrap() as i64;
+    let ymax = *available_years().iter().max().unwrap() as i64;
+
     Command::new("aoc")
         .about("Advent of code toolset")
         .subcommand_required(true)
@@ -18,14 +21,14 @@ fn cli() -> Command {
                 )
                 .arg(arg!([year] "Year to fetch data for")
                     .default_value("2021")
-                    .value_parser(value_parser!(u16).range(2015..=2022)))
+                    .value_parser(value_parser!(u16).range(ymin..=ymax)))
         )
         .subcommand(
             Command::new("data")
                 .about("Get data for all days")
                 .arg(arg!([year] "Year to fetch data for")
                     .default_value("2021")
-                    .value_parser(value_parser!(u16).range(2015..=2022)))
+                    .value_parser(value_parser!(u16).range(ymin..=ymax)))
         )
         .subcommand(
             Command::new("run")
@@ -35,14 +38,14 @@ fn cli() -> Command {
                 )
                 .arg(arg!([year] "Year to fetch data for")
                     .default_value("2021")
-                    .value_parser(value_parser!(u16).range(2015..=2022)))
+                    .value_parser(value_parser!(u16).range(ymin..=ymax)))
         )
         .subcommand(
             Command::new("runall")
                 .about("Run all known solutions, with individual and total timing")
                 .arg(arg!([year] "Year to fetch data for")
                     .default_value("2021")
-                    .value_parser(value_parser!(u16).range(2015..=2022)))
+                    .value_parser(value_parser!(u16).range(ymin..=ymax)))
         )
 }
 

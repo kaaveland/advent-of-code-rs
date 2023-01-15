@@ -167,8 +167,6 @@ fn find_distress_beacon(map: &Map) -> Option<Location> {
         intersects.retain(|loc| manhattan_dist(sensor, loc) > dist);
     }
 
-    println!("Found {} after filter", intersects.len());
-
     if intersects.len() != 1 {
         None
     } else {
