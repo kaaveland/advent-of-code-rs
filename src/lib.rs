@@ -4,6 +4,7 @@ use rayon::prelude::*;
 use std::fs;
 use std::time::Instant;
 
+pub mod year_2020;
 pub mod year_2021;
 pub mod year_2022;
 
@@ -15,8 +16,11 @@ pub struct Solution {
     part_2: fn(&str) -> Result<String>,
 }
 
-const YEARS: [(u16, [Solution; 25]); 2] =
-    [(2021, year_2021::SOLUTIONS), (2022, year_2022::SOLUTIONS)];
+const YEARS: [(u16, [Solution; 25]); 3] = [
+    (2020, year_2021::SOLUTIONS),
+    (2021, year_2021::SOLUTIONS),
+    (2022, year_2022::SOLUTIONS),
+];
 
 pub fn not_implemented(_: &str) -> Result<String> {
     Ok("Not implemented yet".to_string())
@@ -30,7 +34,7 @@ fn elapsed_string(now: Instant) -> String {
     }
 }
 pub fn timed_solution(year: u16, day: u8) -> Result<String> {
-    let path = format!("./input/day_{day:0>2}/input");
+    let path = format!("./input/{year}/day_{day:0>2}/input");
     let have_it = fs::read_to_string(path.as_str());
     let content = if let Ok(found) = have_it {
         found
