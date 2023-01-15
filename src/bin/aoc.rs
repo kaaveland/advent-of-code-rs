@@ -1,11 +1,12 @@
 use anyhow::Result;
-use aoc::{dl_data, timed_all_solutions, timed_solution, SOLUTIONS};
+use aoc::year_2021::SOLUTIONS;
+use aoc::{dl_data, timed_all_solutions, timed_solution};
 use clap::{arg, value_parser, Command};
 
 fn cli() -> Command {
     let max_solution: i64 = SOLUTIONS.len() as i64 + 1;
     Command::new("aoc")
-        .about("Advent of code 2021 toolset")
+        .about("Advent of code toolset")
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(
@@ -15,10 +16,16 @@ fn cli() -> Command {
                     .required(true)
                     .value_parser(value_parser!(u8).range(1..max_solution))
                 )
+                .arg(arg!([year] "Year to fetch data for")
+                    .default_value("2021")
+                    .value_parser(value_parser!(u16).range(2015..=2022)))
         )
         .subcommand(
             Command::new("data")
                 .about("Get data for all days")
+                .arg(arg!([year] "Year to fetch data for")
+                    .default_value("2021")
+                    .value_parser(value_parser!(u16).range(2015..=2022)))
         )
         .subcommand(
             Command::new("run")
@@ -26,10 +33,16 @@ fn cli() -> Command {
                 .arg(arg!(<day> "Day number to run. Caches data locally in input/day_nn/input if not present")
                     .value_parser(value_parser!(u8).range(1..max_solution))
                 )
+                .arg(arg!([year] "Year to fetch data for")
+                    .default_value("2021")
+                    .value_parser(value_parser!(u16).range(2015..=2022)))
         )
         .subcommand(
             Command::new("runall")
                 .about("Run all known solutions, with individual and total timing")
+                .arg(arg!([year] "Year to fetch data for")
+                    .default_value("2021")
+                    .value_parser(value_parser!(u16).range(2015..=2022)))
         )
 }
 
@@ -39,16 +52,24 @@ fn main() -> Result<()> {
     match matches.subcommand() {
         Some(("day-data", sub_matches)) => {
             let day = *sub_matches.get_one::<u8>("day").unwrap();
-            dl_data::single_day(day)
+            let year = *sub_matches.get_one::<u16>("year").unwrap();
+            dl_data::single_day(year, day)
         }
-        Some(("data", _)) => dl_data::all_days(),
+        Some(("data", sub_matches)) => {
+            let year = *sub_matches.get_one::<u16>("year").unwrap();
+            dl_data::all_days(year)
+        }
         Some(("run", sub_matches)) => {
             let day = *sub_matches.get_one::<u8>("day").unwrap();
-            let rep = timed_solution(day)?;
+            let year = *sub_matches.get_one::<u16>("year").unwrap();
+            let rep = timed_solution(year, day)?;
             println!("{}", rep);
             Ok(())
         }
-        Some(("runall", _)) => timed_all_solutions(),
+        Some(("runall", sub_matches)) => {
+            let year = *sub_matches.get_one::<u16>("year").unwrap();
+            timed_all_solutions(year)
+        }
         _ => unreachable!(),
     }
 }

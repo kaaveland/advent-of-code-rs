@@ -34,53 +34,59 @@ fn obtain_client() -> Result<Client> {
     Ok(client)
 }
 
-fn download_day(client: &Client, cookie: &str, day: u8) -> Result<String> {
-    if !(1..=25).contains(&day) {
-        Err(anyhow!("Day should be between 1 and 25, got {day}"))
+fn download_day(client: &Client, cookie: &str, year: u16, day: u8) -> Result<String> {
+    valid_data(year, day)?;
+
+    let url = format!("https://adventofcode.com/{year}/day/{day}/input");
+    let resp = client
+        .get(url)
+        .header("Cookie", format!("session={cookie}"))
+        .send()?;
+    let status = resp.status();
+    if status.is_success() {
+        let data = resp.text()?;
+        Ok(data)
     } else {
-        let url = format!("https://adventofcode.com/2021/day/{day}/input");
-        let resp = client
-            .get(url)
-            .header("Cookie", format!("session={cookie}"))
-            .send()?;
-        let status = resp.status();
-        if status.is_success() {
-            let data = resp.text()?;
-            Ok(data)
-        } else {
-            Err(anyhow!("Got response {status} from aoc"))
-        }
+        Err(anyhow!("Got response {status} from aoc"))
     }
 }
 
-fn put_day(day: u8, day_content: String) -> Result<()> {
-    if !(1..=25).contains(&day) {
-        Err(anyhow!("Day should be between 1 and 25, got {day}"))
+fn valid_data(year: u16, day: u8) -> Result<()> {
+    if !((1..=25).contains(&day) && (2015..=2022).contains(&year)) {
+        Err(anyhow!(
+            "Day should be between 1 and 25 and year between 2015 and 2022, got {day} and {year}"
+        ))
     } else {
-        let folder = format!("./input/day_{day:0>2}");
-        let dest = format!("{folder}/input");
-        fs::create_dir_all(folder)?;
-        let mut fp = File::create(dest.as_str())?;
-        fp.write_all(day_content.as_bytes())?;
         Ok(())
     }
 }
 
-pub fn single_day(day: u8) -> Result<()> {
-    let client = obtain_client()?;
-    let cookie = obtain_cookie()?;
-    let content = download_day(&client, cookie.as_str(), day)?;
-    put_day(day, content)
+fn put_day(year: u16, day: u8, day_content: String) -> Result<()> {
+    valid_data(year, day)?;
+
+    let folder = format!("./input/{year}/day_{day:0>2}");
+    let dest = format!("{folder}/input");
+    fs::create_dir_all(folder)?;
+    let mut fp = File::create(dest.as_str())?;
+    fp.write_all(day_content.as_bytes())?;
+    Ok(())
 }
 
-pub fn all_days() -> Result<()> {
+pub fn single_day(year: u16, day: u8) -> Result<()> {
+    let client = obtain_client()?;
+    let cookie = obtain_cookie()?;
+    let content = download_day(&client, cookie.as_str(), year, day)?;
+    put_day(year, day, content)
+}
+
+pub fn all_days(year: u16) -> Result<()> {
     let client = obtain_client()?;
     let cookie = obtain_cookie()?;
 
     for day in 1..=25 {
         let day = day as u8;
-        let content = download_day(&client, cookie.as_str(), day)?;
-        put_day(day, content)?;
+        let content = download_day(&client, cookie.as_str(), year, day)?;
+        put_day(year, day, content)?;
     }
 
     Ok(())
