@@ -4,6 +4,7 @@ use rayon::prelude::*;
 use std::fs;
 use std::time::Instant;
 
+pub mod year_2019;
 pub mod year_2020;
 pub mod year_2021;
 pub mod year_2022;
@@ -18,7 +19,7 @@ pub struct Solution {
 }
 
 const YEARS: [(u16, [Solution; 25]); 3] = [
-    (2020, year_2021::SOLUTIONS),
+    (2020, year_2020::SOLUTIONS),
     (2021, year_2021::SOLUTIONS),
     (2022, year_2022::SOLUTIONS),
 ];
