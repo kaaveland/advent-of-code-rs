@@ -15,13 +15,13 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn prioritized(self) -> Vec<Direction> {
-        let mut out = vec![self];
-        while out.len() < 4 {
-            let last = out.last().unwrap();
-            out.push(last.next());
-        }
-        out
+    fn prioritized(self) -> [Direction; 4] {
+        [
+            self,
+            self.next(),
+            self.next().next(),
+            self.next().next().next(),
+        ]
     }
 
     fn next(&self) -> Direction {
@@ -34,16 +34,14 @@ impl Direction {
         }
     }
 
-    fn of(&self, point: &Elf) -> HashSet<Elf> {
+    fn of(&self, point: &Elf) -> [Elf; 3] {
         use Direction::*;
         match self {
-            North => vec![point.northwest(), point.north(), point.northeast()],
-            West => vec![point.northwest(), point.west(), point.southwest()],
-            East => vec![point.northeast(), point.east(), point.southeast()],
-            South => vec![point.southwest(), point.south(), point.southeast()],
+            North => [point.northwest(), point.north(), point.northeast()],
+            West => [point.northwest(), point.west(), point.southwest()],
+            East => [point.northeast(), point.east(), point.southeast()],
+            South => [point.southwest(), point.south(), point.southeast()],
         }
-        .into_iter()
-        .collect()
     }
 
     fn adjust(&self, elf: &Elf) -> Elf {
@@ -81,14 +79,10 @@ fn next_board(board: &Board, current_dir: &Direction) -> Board {
     let mut next_board: Board = Board::default();
 
     for elf in board {
-        if board
-            .intersection(&elf.around().into_iter().collect())
-            .next()
-            .is_some()
-        {
+        if elf.around().iter().any(|n| board.contains(n)) {
             let mut claimed = false;
             for dir in current_dir.prioritized() {
-                if board.intersection(&dir.of(elf)).count() == 0 {
+                if !dir.of(elf).iter().any(|n| board.contains(n)) {
                     let claim = dir.adjust(elf);
                     claims_vec.push(claim);
                     *claim_counter.entry(claim).or_default() += 1;
