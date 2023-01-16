@@ -8,9 +8,6 @@ enum Cave {
 }
 
 impl Cave {
-    fn is_large(&self) -> bool {
-        matches!(self, Cave::Large(_))
-    }
     fn is_small(&self) -> bool {
         matches!(self, Cave::Small(_))
     }
@@ -80,28 +77,9 @@ fn parse_graph(input: &str) -> Search {
     }
 }
 
-fn dfs_count(search: &Search) -> usize {
+fn dfs_count(search: &Search, allow_dup: bool) -> usize {
     let mut completed_paths = 0;
-    let mut stack = vec![(&search.start, 0)];
-    while let Some((cave, path)) = stack.pop() {
-        if cave == &search.end {
-            completed_paths += 1;
-        } else {
-            let graph = &search.graph;
-            for next_place in graph[cave.idx()]
-                .iter()
-                .filter(|&option: &&Cave| option.is_large() || !option.is_in(path))
-            {
-                stack.push((next_place, path | cave.bitpattern()));
-            }
-        }
-    }
-    completed_paths
-}
-
-fn dfs_count_dup_once(search: &Search) -> usize {
-    let mut completed_paths = 0;
-    let mut stack = vec![(false, &search.start, 0u64)];
+    let mut stack = vec![(!allow_dup, &search.start, 0u64)];
     while let Some((has_dup, cave, path)) = stack.pop() {
         if cave == &search.end {
             completed_paths += 1;
@@ -124,12 +102,12 @@ fn dfs_count_dup_once(search: &Search) -> usize {
 
 pub fn part_1(input: &str) -> Result<String> {
     let search = parse_graph(input);
-    let paths = dfs_count(&search);
+    let paths = dfs_count(&search, false);
     Ok(format!("{paths}"))
 }
 pub fn part_2(input: &str) -> Result<String> {
     let search = parse_graph(input);
-    let paths = dfs_count_dup_once(&search);
+    let paths = dfs_count(&search, true);
     Ok(format!("{paths}"))
 }
 
@@ -140,25 +118,25 @@ pub mod tests {
     #[test]
     fn small_example_p1() {
         let search = parse_graph(SMALL_EXAMPLE);
-        assert_eq!(dfs_count(&search), 10);
+        assert_eq!(dfs_count(&search, false), 10);
     }
 
     #[test]
     fn small_example_p2() {
         let search = parse_graph(SMALL_EXAMPLE);
-        assert_eq!(dfs_count_dup_once(&search), 36);
+        assert_eq!(dfs_count(&search, true), 36);
     }
 
     #[test]
     fn large_example_p1() {
         let search = parse_graph(EXAMPLE);
-        assert_eq!(dfs_count(&search), 226);
+        assert_eq!(dfs_count(&search, false), 226);
     }
 
     #[test]
     fn large_example_p2() {
         let search = parse_graph(EXAMPLE);
-        assert_eq!(dfs_count_dup_once(&search), 3509);
+        assert_eq!(dfs_count(&search, true), 3509);
     }
 
     const SMALL_EXAMPLE: &str = "start-A

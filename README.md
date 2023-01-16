@@ -1,10 +1,16 @@
-Advent of Code 2021 solutions
+Advent of Code solutions in Rust
 ==
 
-My solutions for these, created in 2022/2023. I started solving these to get some more
-training using Rust after having used it to solve Advent of Code 2022 previously, and
-wanting a bit more. For most of these, I did focus a little bit on writing fast code
-but I don't think it should make anyone feel ill.
+My solutions for Advent of Code puzzles in Rust, created in 2022/2023. These have been solved
+in reverse chronological starting in December 2022. I used these puzzles to learn to program Rust.
+
+There's a small command line utility to run the programs and download data from advent of code. Most
+of the programs are self-contained, there's very little shared code so that it should be relatively
+easy to take out some code and run independently.
+
+For year 2022, the focus was mostly to get familiar with Rust and the stdlib. There's a variety of
+error handling, from none at all to matching against `Option`s or `Result`s to using the `?` operator
+with `anyhow::Result`. For year 2021 I wanted to write code that performs well.
 
 Usage
 ==
@@ -13,12 +19,12 @@ Build with: `cargo build --release` and run `target/release/aoc --help`:
 
 ```shell
 $ target/release/aoc --help
-Advent of code 2021 toolset
+Advent of Code toolset
 
 Usage: aoc <COMMAND>
 
 Commands:
-  day-data  Get data for day (dump to input/day_nn/input
+  day-data  Get data for day (dump to input/year/day_nn/input
   data      Get data for all days
   run       Run solution, both parts, with timing
   runall    Run all known solutions, with individual and total timing
@@ -29,10 +35,10 @@ Options:
 ```
 
 If you want to actually use this, you probably want to first run `target/release/aoc data` to
-get a copy of your datasets locally. The output from `runall` looks something like this (these are my answers):
+get a copy of your datasets locally. The output from `runall` looks something like this (these are my answers for 2021):
 
 ```shell
-$ target/release/aoc runall
+$ target/release/aoc runall 2021
 Run all implemented solutions
 Day 1 part 1: 104μs
 1791
@@ -169,29 +175,30 @@ Learning points
 Solution comments
 --
 
-- [Day 19](src/day_19.rs) was solved in one sitting on a train ride from Oslo to Trondheim and taught me
+2021 learning:
+
+- [Day 19](src/year_2021/day_19.rs) was solved in one sitting on a train ride from Oslo to Trondheim and taught me
   a lot about thinking in 3D and cartesian coordinates. Obviously this has a much more elegant linear algebra
   solution, but I invented my technique from first principles and it was very rewarding to come up with it. It
   will only attempt rotations on 1 point when attempting to find out how to connect scanners, avoiding a lot
   of work at the cost of some complexity in finding out which point to rotate.
-- [Day 22](src/day_22.rs) has an interesting solution based on a tree of cuboid intersections where 
+- [Day 22](src/year_2021/day_22.rs) has an interesting solution based on a tree of cuboid intersections where 
   volume alternates between being added and removed depending on the depth of the tree.
   It is fast and a _lot_ easier than attempting to split cubes. Draw some venn diagrams
   of a simplified version in 2D, and it should be easy to see why it works.
-- [Day 23](src/day_23.rs) was surprisingly easy to solve, once I got over myself and just started writing
+- [Day 23](src/year_2021/day_23.rs) was surprisingly easy to solve, once I got over myself and just started writing
   all the annoying rules. Then I got to part 2 and thought I was going to have to deal with changing my
   data types everywhere, but discovered that Rust has const generics. The implementation is a simple Dijkstra,
   and all the complexity is in managing state transitions. In hindsight, I think it may be simpler to just represent
   state as a bytestring here.
-- [Day 5](src/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by hand to do this.
+- [Day 5](src/year_2021/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by hand to do this.
   It is much faster than using set intersection, but really hard to read and understand why it works. Not my proudest 
   moment, but it was also OK to do some simple math, I don't do a lot of this stuff for a living.
-- [Day 20](src/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a `HashMap` to
+- [Day 20](src/year_2021/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a `HashMap` to
   a `Vec`. I knew it was likely to be faster from the start, but the code is so much simpler when using a `HashMap` and I was
   in a mood to just get it done.
-- [Day 12](src/day_12.rs) is a simple depth first search, but I was very pleased with how simply I could solve part 2 with a couple
-  of extra variables with descriptive names, so I kept both solutions instead of reimplementing part 1 in terms
-  of part 2.
+- [Day 12](src/year_2021/day_12.rs) is a simple depth first search, but I was very happy with how simple
+  and fast the implementation ended up being.
 
 Rust comments
 --
@@ -215,4 +222,7 @@ Rust comments
   that I could _never_ manage to write in C, but then I have to deal with all the error conditions that I
   would never know about in C afterwards. Overall it doesn't feel too verbose, but I would have less than
   half of the code in some other languages I know.
+- It is easy, fun and efficient to write simple CLI software in Rust. Compared to C, it's much faster to do so,
+  both because the language aligns more with how I think and the stdlib has batteries included, but also all kinds
+  of things are just a `cargo add` away, f. ex. easy-to-use HTTP client.
 - On the whole I think I'd like to work professionally with Rust at some point, it's really fun.

@@ -9,12 +9,12 @@ fn cli() -> Command {
     let ymax = *available_years().iter().max().unwrap() as i64;
 
     Command::new("aoc")
-        .about("Advent of code toolset")
+        .about("Advent of Code toolset")
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(
             Command::new("day-data")
-                .about("Get data for day (dump to input/day_nn/input")
+                .about("Get data for day (dump to input/year/day_nn/input")
                 .arg(arg!(<day> "Day number to fetch data for")
                     .required(true)
                     .value_parser(value_parser!(u8).range(1..max_solution))
