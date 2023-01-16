@@ -5,7 +5,7 @@ use rayon::prelude::*;
 use regex::Regex;
 use std::collections::VecDeque;
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 struct Problem {
     flow_rate: Vec<u32>,
     edges: Vec<Vec<usize>>,
@@ -173,19 +173,13 @@ fn search_2(problem: &Problem) -> u32 {
                 .collect_vec();
             let left = left_set.iter().map(|vtx| **vtx).collect_vec();
             let right_prob = Problem {
-                flow_rate: problem.flow_rate.clone(),
-                edges: problem.edges.clone(),
-                vertex_names: problem.vertex_names.clone(),
-                costs: problem.costs.clone(),
                 vtx_with_flow: right_set,
+                ..problem.clone()
             };
             let right_solution = search(&right_prob, max_cost);
             let left_prob = Problem {
-                flow_rate: problem.flow_rate.clone(),
-                edges: problem.edges.clone(),
-                vertex_names: problem.vertex_names.clone(),
-                costs: problem.costs.clone(),
                 vtx_with_flow: left,
+                ..problem.clone()
             };
             let left_solution = search(&left_prob, max_cost);
             left_solution + right_solution
