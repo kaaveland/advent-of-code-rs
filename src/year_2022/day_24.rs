@@ -103,23 +103,28 @@ fn bfs_to_goal(board: &Board, inital_time: i32) -> Option<i32> {
     let mut blizzpos: HashSet<_> = blizzards.iter().map(|blizz| &blizz.pos).cloned().collect();
     let walls: HashSet<_> = board.walls.iter().collect();
     let mut currtime = 0;
+    let mut visited = HashSet::default();
+    visited.insert((0, Point2d { x: 0, y: 0 }));
 
     let xbound = 0..xmax;
     let ybound = 0..ymax;
 
     while let Some((time, place)) = queue.pop_front() {
+        let reposition = currtime < time;
         while currtime < time {
             currtime += 1;
             blizzards = blizzards
                 .into_iter()
                 .map(|blizz| move_blizzard_out_of_walls(&blizz, &walls, (xmax, ymax)))
                 .collect();
+        }
+        if reposition {
             blizzpos = blizzards.iter().map(|blizz| blizz.pos).collect();
         }
         if place == board.goal {
             return Some(time - 1);
         }
-        let options = vec![
+        let options = [
             place.north(),
             place.west(),
             place.south(),
@@ -132,11 +137,12 @@ fn bfs_to_goal(board: &Board, inital_time: i32) -> Option<i32> {
                 && !walls.contains(opt)
                 && xbound.contains(&opt.x)
                 && ybound.contains(&opt.y)
-        })
-        .collect_vec();
+        });
+
         for point in options {
-            if !queue.contains(&(time + 1, point)) {
+            if !visited.contains(&(time + 1, point)) {
                 queue.push_back((time + 1, point));
+                visited.insert((time + 1, point));
             }
         }
     }
