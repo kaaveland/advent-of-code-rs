@@ -42,12 +42,10 @@ fn solve_2(input: &str) -> i64 {
     let mut connect_count = vec![0; max_val as usize + 1];
     connect_count[0] = 1;
     for adapter in adapters {
-        for joltage_diff in 1..=3 {
-            let connector = adapter - joltage_diff;
-            if connector >= 0 {
-                connect_count[adapter as usize] += connect_count[connector as usize];
-            }
-        }
+        connect_count[adapter as usize] = (1..=3)
+            .map(|c| adapter - c)
+            .filter_map(|c| connect_count.get(c as usize))
+            .sum();
     }
     connect_count[max_val as usize]
 }
