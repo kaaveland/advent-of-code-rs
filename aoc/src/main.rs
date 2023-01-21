@@ -1,10 +1,9 @@
 use anyhow::Result;
-use aoc::year_2021::SOLUTIONS;
 use aoc::{available_years, dl_data, timed_all_solutions, timed_solution};
 use clap::{arg, value_parser, Command};
 
 fn cli() -> Command {
-    let max_solution: i64 = SOLUTIONS.len() as i64 + 1;
+    let max_solution: i64 = 25;
     let ymin = *available_years().iter().min().unwrap() as i64;
     let ymax = *available_years().iter().max().unwrap() as i64;
 

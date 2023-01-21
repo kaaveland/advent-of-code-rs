@@ -1,44 +1,22 @@
 use anyhow::{anyhow, Context, Result};
 use itertools::Itertools;
 use rayon::prelude::*;
+use shared::{elapsed_string, Solution};
 use std::fs;
 use std::time::Instant;
 
-pub mod year_2019;
-pub mod year_2020;
-pub mod year_2021;
-pub mod year_2022;
-
 pub mod dl_data;
-pub mod point_2d;
-
-pub struct Solution {
-    day_no: u8,
-    part_1: fn(&str) -> Result<String>,
-    part_2: fn(&str) -> Result<String>,
-}
 
 const YEARS: [(u16, [Solution; 25]); 3] = [
-    (2020, year_2020::SOLUTIONS),
-    (2021, year_2021::SOLUTIONS),
-    (2022, year_2022::SOLUTIONS),
+    (2020, y2020::SOLUTIONS),
+    (2021, y2021::SOLUTIONS),
+    (2022, y2022::SOLUTIONS),
 ];
 
 pub fn available_years() -> Vec<u16> {
     YEARS.iter().map(|(y, _)| y).copied().sorted().collect()
 }
 
-pub fn not_implemented(_: &str) -> Result<String> {
-    Ok("Not implemented yet".to_string())
-}
-
-fn elapsed_string(now: Instant) -> String {
-    if now.elapsed().as_millis() > 2 {
-        format!("{}ms", now.elapsed().as_millis())
-    } else {
-        format!("{}μs", now.elapsed().as_micros())
-    }
-}
 pub fn timed_solution(year: u16, day: u8) -> Result<String> {
     let path = format!("./input/{year}/day_{day:0>2}/input");
     let have_it = fs::read_to_string(path.as_str());

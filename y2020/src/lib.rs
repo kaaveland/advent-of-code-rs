@@ -1,4 +1,4 @@
-use crate::Solution;
+use shared::{not_implemented, Solution};
 
 pub mod day_01;
 pub mod day_02;
@@ -15,16 +15,6 @@ pub mod day_12;
 pub mod day_13;
 pub mod day_14;
 pub mod day_15;
-pub mod day_16;
-pub mod day_17;
-pub mod day_18;
-pub mod day_19;
-pub mod day_20;
-pub mod day_21;
-pub mod day_22;
-pub mod day_23;
-pub mod day_24;
-pub mod day_25;
 
 pub const SOLUTIONS: [Solution; 25] = [
     Solution {
@@ -104,52 +94,52 @@ pub const SOLUTIONS: [Solution; 25] = [
     },
     Solution {
         day_no: 16,
-        part_1: day_16::part_1,
-        part_2: day_16::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 17,
-        part_1: day_17::part_1,
-        part_2: day_17::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 18,
-        part_1: day_18::part_1,
-        part_2: day_18::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 19,
-        part_1: day_19::part_1,
-        part_2: day_19::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 20,
-        part_1: day_20::part_1,
-        part_2: day_20::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 21,
-        part_1: day_21::part_1,
-        part_2: day_21::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 22,
-        part_1: day_22::part_1,
-        part_2: day_22::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 23,
-        part_1: day_23::part_1,
-        part_2: day_23::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 24,
-        part_1: day_24::part_1,
-        part_2: day_24::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 25,
-        part_1: day_25::part_1,
-        part_2: day_25::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
 ];

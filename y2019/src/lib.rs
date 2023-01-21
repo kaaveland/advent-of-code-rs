@@ -1,4 +1,4 @@
-use super::{not_implemented, Solution};
+use shared::{not_implemented, Solution};
 
 pub const SOLUTIONS: [Solution; 25] = [
     Solution {

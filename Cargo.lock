@@ -18,17 +18,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cb2f989d18dd141ab8ae82f64d1a8cdd37e0840f73a406896cf5e99502fab61"
 
 [[package]]
-name = "aoc-21"
+name = "aoc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "fxhash",
  "itertools",
- "once_cell",
  "rayon",
  "regex",
  "reqwest",
+ "shared",
+ "y2019",
+ "y2020",
+ "y2021",
+ "y2022",
 ]
 
 [[package]]
@@ -568,9 +572,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.16.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86f0b0d4bf799edbc74508c1e8bf170ff5f41238e5f8225603ca7caaae2b7860"
+checksum = "6f61fba1741ea2b3d6a1e3178721804bb716a68a6aeba1149b5d52e3d464ea66"
 
 [[package]]
 name = "openssl"
@@ -845,6 +849,18 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fxhash",
+ "itertools",
+ "rayon",
+ "regex",
+ "reqwest",
 ]
 
 [[package]]
@@ -1262,4 +1278,53 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "y2019"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fxhash",
+ "itertools",
+ "rayon",
+ "regex",
+ "shared",
+]
+
+[[package]]
+name = "y2020"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fxhash",
+ "itertools",
+ "once_cell",
+ "rayon",
+ "regex",
+ "shared",
+]
+
+[[package]]
+name = "y2021"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fxhash",
+ "itertools",
+ "rayon",
+ "regex",
+ "shared",
+]
+
+[[package]]
+name = "y2022"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fxhash",
+ "itertools",
+ "rayon",
+ "regex",
+ "shared",
 ]
