@@ -159,11 +159,11 @@ variable for `RAYON_NUM_THREADS`, by default I suspect it uses all cores, includ
 Code, structure and tests
 ==
 
-[lib.rs](src/lib.rs) adds all the solution programs to a static data structure,
-they are all public modules. [dl_data.rs](src/dl_data.rs) has some simple and
+[lib.rs](aoc/src/lib.rs) adds all the solution programs to a static data structure,
+they are all public modules. [dl_data.rs](aoc/src/dl_data.rs) has some simple and
 stupid code for connecting to adventofcode.com using a blocking [reqwest](https://docs.rs/reqwest/latest/reqwest/) 
 http client by annoyingly prompting you for your cookie, which it does not store anywhere after
-use. [aoc.rs](src/bin/aoc.rs) uses [clap](https://docs.rs/clap/latest/clap/) to
+use. [main.rs](aoc/src/main.rs) uses [clap](https://docs.rs/clap/latest/clap/) to
 expose all this to the command line. The code uses [anyhow](https://docs.rs/anyhow/latest/anyhow/)
 throughout to make the `?` operator a bit more ergonomic.
 
@@ -177,27 +177,27 @@ Solution comments
 
 2021 learning:
 
-- [Day 19](src/year_2021/day_19.rs) was solved in one sitting on a train ride from Oslo to Trondheim and taught me
+- [Day 19](y2021/src/day_19.rs) was solved in one sitting on a train ride from Oslo to Trondheim and taught me
   a lot about thinking in 3D and cartesian coordinates. Obviously this has a much more elegant linear algebra
   solution, but I invented my technique from first principles and it was very rewarding to come up with it. It
   will only attempt rotations on 1 point when attempting to find out how to connect scanners, avoiding a lot
   of work at the cost of some complexity in finding out which point to rotate.
-- [Day 22](src/year_2021/day_22.rs) has an interesting solution based on a tree of cuboid intersections where 
+- [Day 22](y2021/src/day_22.rs) has an interesting solution based on a tree of cuboid intersections where 
   volume alternates between being added and removed depending on the depth of the tree.
   It is fast and a _lot_ easier than attempting to split cubes. Draw some venn diagrams
   of a simplified version in 2D, and it should be easy to see why it works.
-- [Day 23](src/year_2021/day_23.rs) was surprisingly easy to solve, once I got over myself and just started writing
+- [Day 23](y2021/src/day_23.rs) was surprisingly easy to solve, once I got over myself and just started writing
   all the annoying rules. Then I got to part 2 and thought I was going to have to deal with changing my
   data types everywhere, but discovered that Rust has const generics. The implementation is a simple Dijkstra,
   and all the complexity is in managing state transitions. In hindsight, I think it may be simpler to just represent
   state as a bytestring here.
-- [Day 5](src/year_2021/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by hand to do this.
+- [Day 5](y2021/src/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by hand to do this.
   It is much faster than using set intersection, but really hard to read and understand why it works. Not my proudest 
   moment, but it was also OK to do some simple math, I don't do a lot of this stuff for a living.
-- [Day 20](src/year_2021/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a `HashMap` to
+- [Day 20](y2021/src/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a `HashMap` to
   a `Vec`. I knew it was likely to be faster from the start, but the code is so much simpler when using a `HashMap` and I was
   in a mood to just get it done.
-- [Day 12](src/year_2021/day_12.rs) is a simple depth first search, but I was very happy with how simple
+- [Day 12](y2021/src/day_12.rs) is a simple depth first search, but I was very happy with how simple
   and fast the implementation ended up being.
 
 Rust comments
