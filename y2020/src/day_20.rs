@@ -49,10 +49,15 @@ impl Tile {
 
 #[derive(Eq, PartialOrd, PartialEq, Debug, Copy, Clone)]
 struct Orientation {
-    rotations: usize,
+    rotations: u8,
     flip_x: bool,
 }
-
+// Actually rotated this 2 x 2 matrix on pen / paper to derive all legal configurations:
+// 12 | 31 | 43 | 24 | 12
+// 34 | 42 | 21 | 13 | 34
+// A rotation: read the columns from bottom to top; they are the rows of the result
+// A flip_x: read the rows in reverse, they are the rows of the result
+// Flipping any rotation around y only results in outputs that are already covered by the above
 const LEGAL: [Orientation; 8] = [
     Orientation {
         rotations: 0,
@@ -286,28 +291,20 @@ fn assemble_image(input: &str) -> Result<Tile> {
     let mut solved_puzzle =
         fit_pieces(input).with_context(|| anyhow!("Unable to puzzle tiles!"))?;
     // First, let's drop the rows / columns that should be removed:
-    let rows = solved_puzzle.len();
     let cols = solved_puzzle[0].len();
     let mut row_offs = 0;
     let mut buf = vec![];
-    for (tile_row, tiles) in solved_puzzle.iter_mut().enumerate() {
+    for tiles in solved_puzzle.iter_mut() {
         for (tile_col, tile) in tiles.iter_mut().enumerate() {
-            if tile_row != 0 {
-                tile.content.remove(0);
-            }
-            if tile_row != rows - 1 {
-                tile.content.pop();
-            }
-            if tile_col != 0 {
-                tile.content.iter_mut().for_each(|row| {
-                    row.remove(0);
-                });
-            }
-            if tile_col != cols - 1 {
-                tile.content.iter_mut().for_each(|row| {
-                    row.pop();
-                });
-            }
+            tile.content.remove(0);
+            tile.content.pop();
+            tile.content.iter_mut().for_each(|row| {
+                row.remove(0);
+            });
+            tile.content.iter_mut().for_each(|row| {
+                row.pop();
+            });
+
             if tile_col == 0 {
                 //
                 for _ in 0..tile.content.len() {
@@ -329,9 +326,52 @@ fn assemble_image(input: &str) -> Result<Tile> {
     })
 }
 
-pub fn part_2(input: &str) -> Result<String> {
+const MONSTER: &str = "                  # 
+#    ##    ##    ###
+ #  #  #  #  #  #   ";
+
+fn count_sea_monsters(tile: &Tile) -> usize {
+    let monster: Vec<Vec<_>> = MONSTER
+        .lines()
+        .map(|line| line.chars().map(|ch| ch == '#').collect())
+        .collect();
+    let mut found = 0;
+    let yoff = tile.content.len() - monster.len();
+    let xoff = tile.content[0].len() - monster[0].len();
+    for tile_y in 0..yoff {
+        for tile_x in 0..xoff {
+            if (0..monster.len())
+                .cartesian_product(0..monster[0].len())
+                .all(|(y, x)| (tile.content[tile_y + y][tile_x + x]) || !(monster[y][x]))
+            {
+                found += monster
+                    .iter()
+                    .flat_map(|row| row.iter().filter(|b| **b))
+                    .count();
+            }
+        }
+    }
+
+    found
+}
+
+fn solve_2(input: &str) -> Result<usize> {
     let img = assemble_image(input)?;
-    Ok("Not implemented yet".into())
+    let bits_set = img
+        .content
+        .iter()
+        .flat_map(|row| row.iter().filter(|b| **b))
+        .count();
+    let seamonster_bits = LEGAL
+        .iter()
+        .map(|orientation| count_sea_monsters(&orientation.of(&img)))
+        .max()
+        .unwrap_or(0);
+    Ok(bits_set - seamonster_bits)
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    solve_2(input).map(|n| format!("{n}"))
 }
 
 #[cfg(test)]
@@ -343,6 +383,11 @@ mod tests {
     fn test_parse() {
         let tiles = parse(EXAMPLE);
         assert_eq!(tiles.len(), 9);
+    }
+
+    #[test]
+    fn test_example_p2() {
+        assert_eq!(solve_2(EXAMPLE).unwrap(), 273);
     }
 
     const EXAMPLE: &str = "Tile 2311:

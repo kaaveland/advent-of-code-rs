@@ -7,7 +7,8 @@ use std::time::Instant;
 
 pub mod dl_data;
 
-const YEARS: [(u16, [Solution; 25]); 3] = [
+const YEARS: [(u16, [Solution; 25]); 4] = [
+    (2019, y2019::SOLUTIONS),
     (2020, y2020::SOLUTIONS),
     (2021, y2021::SOLUTIONS),
     (2022, y2022::SOLUTIONS),

@@ -1,12 +1,10 @@
 use shared::{not_implemented, Solution};
 
-pub mod day_01;
-
 pub const SOLUTIONS: [Solution; 25] = [
     Solution {
         day_no: 1,
-        part_1: day_01::part_1,
-        part_2: day_01::part_2,
+        part_1: not_implemented,
+        part_2: not_implemented,
     },
     Solution {
         day_no: 2,
