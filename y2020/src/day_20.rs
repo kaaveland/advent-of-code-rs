@@ -1,5 +1,5 @@
-use anyhow::Result;
-use fxhash::FxHashMap as HashMap;
+use anyhow::{anyhow, Context, Result};
+use fxhash::{FxHashMap as HashMap, FxHashSet as HashSet};
 use itertools::Itertools;
 
 #[derive(Eq, PartialEq, Debug, Clone)]
@@ -26,98 +26,318 @@ fn parse(input: &str) -> Vec<Tile> {
         })
         .collect()
 }
+
 fn dec<'a>(it: &'a mut impl Iterator<Item = &'a bool>) -> u16 {
     it.fold(0, |acc, bit| acc * 2 + u16::from(*bit))
 }
+
+const TOP: usize = 0;
+const RIGHT: usize = 1;
+const BOT: usize = 2;
+const LEFT: usize = 3;
+
 impl Tile {
-    fn edges(&self) -> [u16; 4] {
-        let n = self.content.len();
+    fn edge_footprints(&self) -> [u16; 4] {
         [
-            dec(&mut self.content[0].iter()),                             // top
-            dec(&mut self.content[n - 1].iter()),                         // bot
-            dec(&mut self.content.iter().map(|row| &row[0])),             // left
-            dec(&mut self.content.iter().map(|row| &row[row.len() - 1])), // right
+            dec(&mut self.content[0].iter()),                             // TOP
+            dec(&mut self.content.iter().map(|row| &row[row.len() - 1])), // RIGHT
+            dec(&mut self.content[self.content.len() - 1].iter()),        // BOT
+            dec(&mut self.content.iter().map(|row| &row[0])),             // LEFT
         ]
     }
+}
 
-    fn edges_with_flips(&self) -> [u16; 8] {
-        let n = self.content.len();
-        [
-            dec(&mut self.content[0].iter()),                             // top
-            dec(&mut self.content[n - 1].iter()),                         // bot
-            dec(&mut self.content.iter().map(|row| &row[0])),             // left
-            dec(&mut self.content.iter().map(|row| &row[row.len() - 1])), // right
-            dec(&mut self.content[0].iter().rev()),
-            dec(&mut self.content[n - 1].iter().rev()),
-            dec(&mut self.content.iter().map(|row| &row[0]).rev()),
-            dec(&mut self.content.iter().map(|row| &row[row.len() - 1]).rev()),
-        ]
-    }
+#[derive(Eq, PartialOrd, PartialEq, Debug, Copy, Clone)]
+struct Orientation {
+    rotations: usize,
+    flip_x: bool,
+}
 
-    fn flips(&self) -> [[u16; 4]; 4] {
-        let mut out = [self.edges(); 4];
-        // flipped left-right
-        let n = self.content.len();
-        out[1][0] = dec(&mut self.content[0].iter().rev());
-        out[1][1] = dec(&mut self.content[n - 1].iter().rev());
-        // flipped upside-down
-        out[2][2] = dec(&mut self.content.iter().map(|row| &row[0]).rev());
-        out[2][3] = dec(&mut self.content.iter().map(|row| &row[row.len() - 1]).rev());
-        // Both
-        out[3][0] = dec(&mut self.content[0].iter().rev());
-        out[3][1] = dec(&mut self.content[n - 1].iter().rev());
-        out[3][2] = dec(&mut self.content.iter().map(|row| &row[0]).rev());
-        out[3][3] = dec(&mut self.content.iter().map(|row| &row[row.len() - 1]).rev());
+const LEGAL: [Orientation; 8] = [
+    Orientation {
+        rotations: 0,
+        flip_x: false,
+    },
+    Orientation {
+        rotations: 0,
+        flip_x: true,
+    },
+    Orientation {
+        rotations: 1,
+        flip_x: false,
+    },
+    Orientation {
+        rotations: 1,
+        flip_x: true,
+    },
+    Orientation {
+        rotations: 2,
+        flip_x: false,
+    },
+    Orientation {
+        rotations: 2,
+        flip_x: true,
+    },
+    Orientation {
+        rotations: 3,
+        flip_x: false,
+    },
+    Orientation {
+        rotations: 3,
+        flip_x: true,
+    },
+];
+
+impl Orientation {
+    fn of(&self, tile: &Tile) -> Tile {
+        let mut out = tile.clone();
+        self.on(&mut out);
         out
     }
+    fn on(&self, tile: &mut Tile) {
+        for _ in 0..self.rotations {
+            let v = (0..tile.content.len())
+                .map(|col| tile.content.iter().map(|row| row[col]).rev().collect_vec())
+                .collect_vec();
+            tile.content = v;
+        }
+        if self.flip_x {
+            tile.content.iter_mut().for_each(|row| row.reverse());
+        }
+    }
+    fn edges(&self, tile: &Tile) -> [u16; 4] {
+        let transformed = self.of(tile);
+        [
+            dec(&mut transformed.content[0].iter()), // top
+            dec(&mut transformed.content.iter().map(|row| &row[row.len() - 1])), // right
+            dec(&mut transformed.content[tile.content.len() - 1].iter()), // bot
+            dec(&mut transformed.content.iter().map(|row| &row[0])), // left
+        ]
+    }
 }
 
-fn corner_ids(tiles: &[Tile]) -> Vec<usize> {
-    // vec over set because n is so small
-    let mut edge_to_tiles: HashMap<u16, Vec<usize>> = HashMap::default();
-    tiles.iter().for_each(|tile| {
-        tile.edges_with_flips().into_iter().for_each(|edge| {
-            edge_to_tiles.entry(edge).or_default().push(tile.id);
-        })
-    });
-    fn is_corner(tile: &Tile, edge_map: &HashMap<u16, Vec<usize>>) -> bool {
-        tile.flips()
-            .into_iter()
-            .map(|edges| {
-                edges
-                    .into_iter()
-                    .filter(|edge| edge_map.get(&edge).map(|v| v.len()).unwrap_or(0) > 1)
-                    .count()
-            })
-            .max()
-            == Some(2)
-    }
+fn possible_edge_sets(tile: &Tile) -> [[u16; 4]; 8] {
+    LEGAL
+        .iter()
+        .map(|orientation| orientation.edges(tile))
+        .collect_vec()
+        .try_into()
+        .unwrap()
+}
+
+fn take_corners(tiles: &[Tile], edge_map: &HashMap<u16, HashSet<usize>>) -> [usize; 4] {
     tiles
         .iter()
-        .filter(|tile| is_corner(*tile, &edge_to_tiles))
+        .filter(|tile| {
+            possible_edge_sets(tile)
+                .iter()
+                .map(|edge_set| {
+                    edge_set
+                        .iter()
+                        .filter(|edge| has_heighbour(**edge, edge_map))
+                        .count()
+                })
+                .max()
+                .unwrap()
+                == 2
+        })
         .map(|tile| tile.id)
+        .take(4)
         .collect_vec()
+        .try_into()
+        .unwrap()
 }
 
-pub fn part_1(input: &str) -> Result<String> {
+#[inline]
+fn has_heighbour(edge: u16, edge_map: &HashMap<u16, HashSet<usize>>) -> bool {
+    edge_map
+        .get(&edge)
+        .map(|set| set.len() > 1)
+        .unwrap_or(false)
+}
+
+fn edge_map(tiles: &[Tile]) -> HashMap<u16, HashSet<usize>> {
+    let mut edge_map: HashMap<u16, HashSet<usize>> = HashMap::default();
+
+    for tile in tiles.iter() {
+        for edge_set in possible_edge_sets(tile) {
+            for edge in edge_set {
+                edge_map.entry(edge).or_default().insert(tile.id);
+            }
+        }
+    }
+
+    edge_map
+}
+
+fn corners(tiles: &[Tile]) -> [usize; 4] {
+    let edge_map = edge_map(tiles);
+    take_corners(tiles, &edge_map)
+}
+
+pub fn part_1(_input: &str) -> Result<String> {
+    let tiles = parse(_input);
+    let n: usize = corners(&tiles).into_iter().product();
+    Ok(format!("{n}"))
+}
+
+fn topleft(tiles: &[Tile], edge_map: &HashMap<u16, HashSet<usize>>) -> Option<Tile> {
+    let nw = take_corners(tiles, edge_map)[0];
+    let original = tiles.iter().find(|t| t.id == nw)?;
+
+    for orientation in LEGAL.iter() {
+        let oriented = orientation.of(original);
+        let edges = oriented.edge_footprints();
+        let top = edges[TOP];
+        let left = edges[LEFT];
+        let bot = edges[BOT];
+        let right = edges[RIGHT];
+        if !has_heighbour(top, edge_map)
+            && !has_heighbour(left, edge_map)
+            && has_heighbour(bot, edge_map)
+            && has_heighbour(right, edge_map)
+        {
+            return Some(oriented);
+        }
+    }
+
+    None
+}
+
+fn backtracking_search(
+    used_tiles: &mut HashSet<usize>,
+    graph: &mut Vec<Vec<Tile>>,
+    tiles: &HashMap<usize, Tile>,
+    edge_map: &HashMap<u16, HashSet<usize>>,
+    connect_to: (usize, usize),
+) -> bool {
+    // Connected all the pieces
+    if used_tiles.len() == tiles.len() {
+        return true;
+    }
+    let available = graph[connect_to.0][connect_to.1].edge_footprints();
+    let right = available[RIGHT];
+    let mut undo_push = false;
+
+    // Check if we filled a row (this assumes input is square)
+    let width = graph[connect_to.0].len();
+    let (next, (my_edge, their_side)) = if tiles.len() / width == width {
+        // Rewind to left so we can fill towards right again
+        let bot_left = graph[connect_to.0][0].edge_footprints()[BOT];
+        ((connect_to.0 + 1, 0), (bot_left, TOP))
+    } else {
+        ((connect_to.0, connect_to.1 + 1), (right, LEFT))
+    };
+
+    // Add new row and record it so we can backtrack
+    if next.0 >= graph.len() {
+        graph.push(vec![]);
+        undo_push = true;
+    }
+
+    let choices = edge_map
+        .get(&my_edge)
+        .iter()
+        .flat_map(|set| set.iter())
+        .filter(|choice| !used_tiles.contains(choice))
+        .collect_vec();
+    for choice in choices {
+        let candidate = tiles.get(choice).unwrap();
+        for orientation in LEGAL.iter() {
+            let add = orientation.of(candidate);
+            if add.edge_footprints()[their_side] == my_edge {
+                used_tiles.insert(add.id);
+                graph[next.0].push(add);
+                let solution = backtracking_search(used_tiles, graph, tiles, edge_map, next);
+                if solution {
+                    return solution;
+                } else {
+                    // backtrack and try another orientation or choice
+                    let remove = graph[next.0].pop().unwrap();
+                    used_tiles.remove(&remove.id);
+                }
+            }
+        }
+    }
+
+    if undo_push {
+        graph.pop();
+    }
+
+    false
+}
+
+fn fit_pieces(input: &str) -> Option<Vec<Vec<Tile>>> {
     let tiles = parse(input);
-    let corners = corner_ids(&tiles);
-    let product: usize = corners.into_iter().product();
-    Ok(format!("{product}"))
+    let edge_map = edge_map(&tiles);
+    let nw = topleft(&tiles, &edge_map)?;
+    let tiles: HashMap<usize, Tile> = tiles.into_iter().map(|tile| (tile.id, tile)).collect();
+    let mut used_tiles: HashSet<_> = [nw.id].into_iter().collect();
+    let mut graph = vec![vec![nw]];
+
+    if backtracking_search(&mut used_tiles, &mut graph, &tiles, &edge_map, (0, 0)) {
+        Some(graph)
+    } else {
+        None
+    }
+}
+
+fn assemble_image(input: &str) -> Result<Tile> {
+    let mut solved_puzzle =
+        fit_pieces(input).with_context(|| anyhow!("Unable to puzzle tiles!"))?;
+    // First, let's drop the rows / columns that should be removed:
+    let rows = solved_puzzle.len();
+    let cols = solved_puzzle[0].len();
+    let mut row_offs = 0;
+    let mut buf = vec![];
+    for (tile_row, tiles) in solved_puzzle.iter_mut().enumerate() {
+        for (tile_col, tile) in tiles.iter_mut().enumerate() {
+            if tile_row != 0 {
+                tile.content.remove(0);
+            }
+            if tile_row != rows - 1 {
+                tile.content.pop();
+            }
+            if tile_col != 0 {
+                tile.content.iter_mut().for_each(|row| {
+                    row.remove(0);
+                });
+            }
+            if tile_col != cols - 1 {
+                tile.content.iter_mut().for_each(|row| {
+                    row.pop();
+                });
+            }
+            if tile_col == 0 {
+                //
+                for _ in 0..tile.content.len() {
+                    buf.push(vec![]);
+                }
+            }
+            for (row_no, row) in tile.content.iter().enumerate() {
+                buf[row_offs + row_no].extend(row.iter().copied());
+            }
+            if tile_col == cols - 1 {
+                row_offs += tile.content.len();
+            }
+        }
+    }
+
+    Ok(Tile {
+        content: buf,
+        id: 0,
+    })
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    let img = assemble_image(input)?;
+    Ok("Not implemented yet".into())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_finds_4_corners() {
-        let tiles = parse(EXAMPLE);
-        let corners = corner_ids(&tiles);
-        assert_eq!(corners.len(), 4);
-        let product: usize = corners.into_iter().product();
-        assert_eq!(product, 20899048083289);
-    }
+    use std::assert_eq;
 
     #[test]
     fn test_parse() {
