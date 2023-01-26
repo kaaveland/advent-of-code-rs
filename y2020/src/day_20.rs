@@ -290,7 +290,6 @@ fn fit_pieces(input: &str) -> Option<Vec<Vec<Tile>>> {
 fn assemble_image(input: &str) -> Result<Tile> {
     let mut solved_puzzle =
         fit_pieces(input).with_context(|| anyhow!("Unable to puzzle tiles!"))?;
-    // First, let's drop the rows / columns that should be removed:
     let cols = solved_puzzle[0].len();
     let mut row_offs = 0;
     let mut buf = vec![];
