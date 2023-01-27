@@ -1,4 +1,6 @@
 use anyhow::anyhow;
+use fxhash::FxHashSet;
+use itertools::Itertools;
 use nom::bytes::complete::tag;
 use nom::character::complete;
 use nom::character::complete::digit1;
@@ -77,12 +79,66 @@ pub fn part_1(input: &str) -> Result<String, anyhow::Error> {
     Ok(format!("{score}"))
 }
 
+type Fingerprint = (Vec<u8>, Vec<u8>);
+
+fn recursive_game(p1: &mut Player, p2: &mut Player) -> Player {
+    fn p1_wins<'a>(p1: &'a mut Player, p2: &'a mut Player) -> bool {
+        let mut seen: FxHashSet<Fingerprint> = FxHashSet::default();
+        while !(p1.1.is_empty() || p2.1.is_empty()) {
+            let fingerprint = (
+                p1.1.iter().copied().collect_vec(),
+                p2.1.iter().copied().collect_vec(),
+            );
+            if !seen.insert(fingerprint) {
+                return true;
+            }
+            let top_1 = p1.1.pop_front().unwrap();
+            let top_2 = p2.1.pop_front().unwrap();
+            let p1_wins = if top_1 <= p1.1.len() as u8 && top_2 <= p2.1.len() as u8 {
+                p1_wins(
+                    &mut Player(p1.0, p1.1.iter().copied().take(top_1 as usize).collect()),
+                    &mut Player(p2.0, p2.1.iter().copied().take(top_2 as usize).collect()),
+                )
+            } else {
+                top_1 > top_2
+            };
+
+            if p1_wins {
+                p1.1.push_back(top_1);
+                p1.1.push_back(top_2);
+            } else {
+                p2.1.push_back(top_2);
+                p2.1.push_back(top_1);
+            }
+        }
+        p2.1.is_empty()
+    }
+    if p1_wins(p1, p2) {
+        p1.clone()
+    } else {
+        p2.clone()
+    }
+}
+
+pub fn part_2(input: &str) -> Result<String, anyhow::Error> {
+    let (_, (mut p1, mut p2)) = parse_players(input)
+        .finish()
+        .map_err(|nomerr| anyhow!("Unable to parse due to {nomerr:?}"))?;
+    let winner = recursive_game(&mut p1, &mut p2);
+    let score = score(&winner);
+    Ok(format!("{score}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use itertools::Itertools;
-    use std::{assert_eq, vec};
-
+    #[test]
+    fn test_play_recursive_example() {
+        let (_, (mut p1, mut p2)) = parse_players(EXAMPLE).unwrap();
+        let winner = recursive_game(&mut p1, &mut p2);
+        assert_eq!(score(&winner), 291);
+    }
     #[test]
     fn test_play_example() {
         let (_, (mut p1, mut p2)) = parse_players(EXAMPLE).unwrap();
