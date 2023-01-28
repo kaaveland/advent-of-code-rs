@@ -1,4 +1,5 @@
 use anyhow::Result;
+use fxhash::FxHashMap as HashMap;
 use fxhash::FxHashSet as HashSet;
 
 // https://en.wikipedia.org/wiki/Hexagonal_Efficient_Coordinate_System#/media/File:HECS_Nearest_Neighbors.png
@@ -98,5 +99,28 @@ fn lay_floor(input: &str) -> HashSet<HexCoord> {
 
 pub fn part_1(input: &str) -> Result<String> {
     let n = lay_floor(input).len();
+    Ok(format!("{n}"))
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    let mut black_tiles = lay_floor(input);
+    for _ in 0..100 {
+        let mut neighbour_black_tiles: HashMap<HexCoord, u8> = HashMap::default();
+        // Make all black tiles increment their neighbours
+        for black_tile in black_tiles.iter() {
+            for neighbour_fn in PREFIX_MAP.iter().map(|(_, f)| f) {
+                let n = neighbour_fn(black_tile);
+                *neighbour_black_tiles.entry(n).or_default() += 1;
+            }
+        }
+        // Any tile in `black_tiles` with a neighour will be in here, others will
+        // flip to white due to 0 neighbours
+        black_tiles = neighbour_black_tiles
+            .into_iter()
+            .filter(|(tile, n)| (*n == 1 && black_tiles.contains(tile)) || *n == 2)
+            .map(|(tile, _)| tile)
+            .collect();
+    }
+    let n = black_tiles.len();
     Ok(format!("{n}"))
 }
