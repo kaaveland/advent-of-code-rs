@@ -138,7 +138,7 @@ pub const SOLUTIONS: [Solution; 25] = [
     Solution {
         day_no: 23,
         part_1: day_23::part_1,
-        part_2: not_implemented,
+        part_2: day_23::part_2,
     },
     Solution {
         day_no: 24,
