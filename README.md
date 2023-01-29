@@ -12,6 +12,14 @@ For year 2022, the focus was mostly to get familiar with Rust and the stdlib. Th
 error handling, from none at all to matching against `Option`s or `Result`s to using the `?` operator
 with `anyhow::Result`. For year 2021 I wanted to write code that performs well.
 
+Progress
+==
+
+- 2022: ✅ Time (mean ± σ):     177.2 ms ±   4.0 ms
+- 2021: ✅ Time (mean ± σ):     101.0 ms ±   2.8 ms
+- 2020: ✅ Time (mean ± σ):     601.8 ms ±  10.7 ms
+- 2019: WIP
+
 Usage
 ==
 
@@ -175,7 +183,34 @@ Learning points
 Solution comments
 --
 
-2021 learning:
+2020 learning/impressions:
+
+- Compile times were getting long enough to be annoying at this point, but switching the layout of the repo to use 
+  cargo workspaces basically fixed that. I'm sure there's some way to add common dependencies on the top level
+  instead of in each crate in the workspace, but I don't mind.
+- [Day 15](y2020/src/day_15.rs) is very slow, I think I could probably cut the time by half if I could find a way
+  to easily get rid of one of the vectors. I do not believe it's possible to solve this in `< 100ms` without some kind
+  of mathematical trick that I haven't discovered.
+- [Day 20](y2020/src/day_20.rs) was a lot of fun, but so much code to write. This could've been a favorite of mine if
+  we were done when we had assembled the image; did not really enjoy the last leg of finding the seamonsters here.
+- I looked into parsing with [nom](https://docs.rs/nom/5.0.0/nom/) for this year, it's a really pleasant crate that
+  I will find many other uses for eventually.
+- There were several constraint propagation problems this year, and I just love rediscovering this algorithm of 
+  choose/eliminate. [Day 16](y2020/src/day_16.rs) and [Day 21](y2020/src/day_21.rs) were both really fun. Once you
+  know how to formulate the choose/eliminate operations and data structures, they're quite easy. It was a little
+  disappointing that neither required the addition of search to implement, but I guess that would've made them
+  quite difficult to solve in the time frame that people set aside for AOC puzzles.
+- [Day 17](y2020/src/day_17.rs) was my least favorite part 2 this year. I would've been able to parameterize the part 1
+  solution in the number of dimensions quite easily, but this is one of those cases where I think Do Repeat Yourself
+  makes the code a lot simpler so I just ended up copy-pasting and adding an extra dimension.
+- [Day 4](y2020/src/day_04.rs) was my least favorite this year. It felt like this ended up being quite a lot of code
+  that was easy but tedious to write. Kind of like a real job, IOW.
+- Rust is a little easier once you lean into the fact that references are Copy and AOC puzzles often lend themselves
+  more naturally towards mutating stuff, especially the "100 times do X, then do Y" kind of puzzles. I normally prefer
+  creating new values, but the borrow checker makes me feel a bit safer in using mutable references. Not sure how I feel
+  about this yet. 
+
+2021 learning/impressions:
 
 - [Day 19](y2021/src/day_19.rs) was solved in one sitting on a train ride from Oslo to Trondheim and taught me
   a lot about thinking in 3D and cartesian coordinates. Obviously this has a much more elegant linear algebra
