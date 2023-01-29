@@ -1310,6 +1310,7 @@ dependencies = [
  "anyhow",
  "fxhash",
  "itertools",
+ "nom",
  "rayon",
  "regex",
  "shared",
