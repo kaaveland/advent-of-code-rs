@@ -82,7 +82,7 @@ pub fn part_2(input: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{assert_eq, vec};
+
     #[test]
     fn test_example() {
         let prog = vec![1, 0, 0, 0, 99];
