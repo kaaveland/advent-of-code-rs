@@ -18,7 +18,7 @@ enum Direction {
 }
 
 impl Direction {
-    fn to_arr(&self) -> [i32; 2] {
+    fn to_arr(self) -> [i32; 2] {
         use Direction::*;
         match self {
             Up => [0, -1],
@@ -93,7 +93,7 @@ pub fn part_1(input: &str) -> Result<String> {
         .into_iter()
         .map(|[x, y]| x.abs() + y.abs())
         .min()
-        .context("No internsections")
+        .context("No intersections")
         .map(|n| format!("{n}"))
 }
 
@@ -107,6 +107,6 @@ pub fn part_2(input: &str) -> Result<String> {
         .into_iter()
         .map(|&point| first.get(point).unwrap() + second.get(point).unwrap())
         .min()
-        .context("No internsections")
+        .context("No intersections")
         .map(|n| format!("{n}"))
 }
