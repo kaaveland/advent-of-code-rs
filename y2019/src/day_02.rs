@@ -1,5 +1,5 @@
+use crate::intcode::{ParameterMode, Program};
 use anyhow::{anyhow, Context, Result};
-use fxhash::FxHashMap as HashMap;
 use itertools::Itertools;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -13,42 +13,10 @@ fn parse(input: &str) -> IResult<&str, Vec<i32>> {
     separated_list1(tag(","), map_res(digit1, FromStr::from_str))(input)
 }
 
-fn read_addr(addr: i32, prog: &[i32], mem: &HashMap<i32, i32>) -> i32 {
-    mem.get(&addr)
-        .or_else(|| prog.get(addr as usize))
-        .copied()
-        .unwrap()
-}
-
-fn run_intcode_program(prog: &[i32]) -> Option<i32> {
-    let mut mem: HashMap<i32, i32> = HashMap::default();
-    let mut instruction_pointer = 0;
-
-    loop {
-        let opcode = read_addr(instruction_pointer, prog, &mem);
-
-        match opcode {
-            99 => {
-                break;
-            }
-            1 | 2 => {
-                let lhs_addr = read_addr(instruction_pointer + 1, prog, &mem);
-                let lhs_val = read_addr(lhs_addr, prog, &mem);
-                let rhs_addr = read_addr(instruction_pointer + 2, prog, &mem);
-                let rhs_val = read_addr(rhs_addr, prog, &mem);
-                let mem_dest = read_addr(instruction_pointer + 3, prog, &mem);
-                let val = if opcode == 1 {
-                    lhs_val + rhs_val
-                } else {
-                    lhs_val * rhs_val
-                };
-                mem.insert(mem_dest, val);
-            }
-            _ => panic!("Unexpected instruction: {opcode}"),
-        }
-        instruction_pointer += 4;
-    }
-    mem.get(&0).or_else(|| prog.first()).copied()
+fn run_intcode_program(prog: &[i32]) -> Option<i64> {
+    let mut program = Program::new(prog);
+    program.exec().ok()?;
+    Some(program.read_addr(0, ParameterMode::Immediate))
 }
 
 pub fn part_1(input: &str) -> Result<String> {
