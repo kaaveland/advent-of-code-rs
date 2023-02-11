@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use fxhash::FxHashMap as HashMap;
 use itertools::Itertools;
 use std::num::ParseIntError;
@@ -184,6 +184,25 @@ impl Program {
         while !self.exec_step()? {}
         Ok(())
     }
+
+    pub fn produce_output(&mut self) -> Result<Output, anyhow::Error> {
+        let available_outputs = self.outputs.len();
+        while self.outputs.len() == available_outputs {
+            if self.exec_step()? {
+                return Ok(Output::Exhausted);
+            }
+        }
+        self.outputs
+            .last()
+            .context("Missing outputs")
+            .copied()
+            .map(Output::Value)
+    }
+}
+
+pub enum Output {
+    Value(i64),
+    Exhausted,
 }
 
 #[cfg(test)]
