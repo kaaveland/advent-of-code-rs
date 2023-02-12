@@ -14,12 +14,14 @@ pub struct Program {
     inputs: Vec<i64>,
     input_pointer: usize,
     outputs: Vec<i64>,
+    relative_base: i64,
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]
 pub enum ParameterMode {
     Position,
     Immediate,
+    Relative,
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]
@@ -33,6 +35,7 @@ enum Operation {
     JumpFalse,
     Less,
     Equal,
+    IncrRelativeBase,
 }
 
 impl Operation {
@@ -41,7 +44,7 @@ impl Operation {
         match self {
             Halt => 0,
             Add | Multiply | Less | Equal => 3,
-            Input | Output => 1,
+            Input | Output | IncrRelativeBase => 1,
             JumpFalse | JumpTrue => 2,
         }
     }
@@ -63,6 +66,7 @@ impl TryFrom<i64> for Operation {
             6 => Ok(JumpFalse),
             7 => Ok(Less),
             8 => Ok(Equal),
+            9 => Ok(IncrRelativeBase),
             _ => Err(anyhow!("Unknown opcode: {opcode}")),
         }
     }
@@ -104,6 +108,7 @@ impl Program {
 
         match mode {
             Position => self.read_addr(val, Immediate),
+            Relative => self.read_addr(val + self.relative_base, Immediate),
             Immediate => val,
         }
     }
@@ -117,6 +122,10 @@ impl Program {
             }
             Position => {
                 let addr = self.read_addr(addr, Immediate);
+                self.memory.insert(addr, value);
+            }
+            Relative => {
+                let addr = self.read_addr(addr, Immediate) + self.relative_base;
                 self.memory.insert(addr, value);
             }
         }
@@ -133,7 +142,13 @@ impl Program {
         self.instruction_pointer += 1;
         let mut parameter_modes = vec![];
         while parameter_modes.len() < op.operands() {
-            let mode = if instr % 10 == 0 { Position } else { Immediate };
+            let mode_digit = instr % 10;
+            let mode = match mode_digit {
+                0 => Position,
+                1 => Immediate,
+                2 => Relative,
+                _ => return Err(anyhow!("Illegal mode: {mode_digit}")),
+            };
             parameter_modes.push((self.instruction_pointer, mode));
             self.instruction_pointer += 1;
             instr /= 10;
@@ -151,7 +166,7 @@ impl Program {
                     Less => i64::from(lhs < rhs),
                     _ => unreachable!(),
                 };
-                self.write_addr(parameter_modes[2].0, result, Position);
+                self.write_addr(parameter_modes[2].0, result, parameter_modes[2].1);
             }
             Halt => return Ok(true),
             Input => {
@@ -174,6 +189,10 @@ impl Program {
                 if param == 0 {
                     self.instruction_pointer = decode(parameter_modes[1]);
                 }
+            }
+            IncrRelativeBase => {
+                let param = decode(parameter_modes[0]);
+                self.relative_base += param;
             }
         }
 
@@ -223,5 +242,30 @@ mod tests {
         };
         prog.exec().unwrap();
         assert_eq!(prog.memory.get(&0).copied(), Some(30));
+    }
+
+    #[test]
+    fn test_relative_mode() {
+        let mut prog = Program::new(&[
+            109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+        ]);
+        prog.exec().unwrap();
+        assert_eq!(
+            prog.output(),
+            &[109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
+        );
+        let mut prog = Program::new(&[1102, 34915192, 34915192, 7, 4, 7, 99, 0]);
+        if let Output::Value(val) = prog.produce_output().unwrap() {
+            assert!(val >= 1_000_000_000_000_000);
+            assert!(val < 10_000_000_000_000_000);
+        } else {
+            panic!("{prog:?} should produce output");
+        }
+        let mut prog = Program::new(&[104, 1125899906842624i64, 99]);
+        if let Output::Value(val) = prog.produce_output().unwrap() {
+            assert_eq!(val, 1125899906842624);
+        } else {
+            panic!("{prog:?} should produce output");
+        }
     }
 }
