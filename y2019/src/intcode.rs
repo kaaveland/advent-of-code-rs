@@ -1,3 +1,4 @@
+use crate::intcode::ParameterMode::Immediate;
 use anyhow::{anyhow, Context};
 use fxhash::FxHashMap as HashMap;
 use itertools::Itertools;
@@ -113,7 +114,7 @@ impl Program {
         }
     }
 
-    fn write_addr(&mut self, addr: i64, value: i64, mode: ParameterMode) {
+    pub fn write_addr(&mut self, addr: i64, value: i64, mode: ParameterMode) {
         use ParameterMode::*;
 
         match mode {
@@ -204,7 +205,7 @@ impl Program {
         Ok(())
     }
 
-    pub fn produce_output(&mut self) -> Result<Output, anyhow::Error> {
+    pub fn produce_output(&mut self) -> Result<Output<i64>, anyhow::Error> {
         let available_outputs = self.outputs.len();
         while self.outputs.len() == available_outputs {
             if self.exec_step()? {
@@ -217,10 +218,23 @@ impl Program {
             .copied()
             .map(Output::Value)
     }
+
+    /// Run until Self requires an input, returning all new outputs
+    pub fn require_input(&mut self) -> Result<&[i64], anyhow::Error> {
+        let available_outputs = self.outputs.len();
+        loop {
+            let instr = self.read_addr(self.instruction_pointer, Immediate);
+            let op: Operation = instr.try_into()?;
+            if matches!(op, Operation::Input) && self.input_pointer >= self.inputs.len() {
+                return Ok(&self.outputs[available_outputs..self.outputs.len()]);
+            }
+            self.exec_step()?;
+        }
+    }
 }
 
-pub enum Output {
-    Value(i64),
+pub enum Output<T> {
+    Value(T),
     Exhausted,
 }
 
