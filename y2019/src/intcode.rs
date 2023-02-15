@@ -97,6 +97,10 @@ impl Program {
         &self.outputs
     }
 
+    pub fn read_inputs(&self) -> &[i64] {
+        &self.inputs
+    }
+
     pub fn read_addr(&self, addr: i64, mode: ParameterMode) -> i64 {
         use ParameterMode::*;
 
