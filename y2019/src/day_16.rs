@@ -99,18 +99,4 @@ mod tests {
         let output = apply_fft(&input);
         assert_eq!(output, vec![4, 8, 2, 2, 6, 1, 5, 8]);
     }
-
-    #[test]
-    fn test_repeating_patterns() {
-        let inputs = vec![1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3];
-        let pat = pattern(8);
-        let dig = inputs
-            .iter()
-            .copied()
-            .zip(pat)
-            .enumerate()
-            .map(|(i, (lhs, rhs))| (i, lhs * rhs))
-            .collect_vec();
-        println!("{dig:?}");
-    }
 }
