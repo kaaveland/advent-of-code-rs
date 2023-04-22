@@ -82,8 +82,6 @@ pub fn part_2(input: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use itertools::Itertools;
-    use nom::combinator::map;
     use std::{assert_eq, vec};
 
     #[test]
