@@ -29,7 +29,6 @@ pub fn part_1(input: &str) -> Result<String> {
 
 fn sum_spans(input: &Vec<u64>, target: u64, nums: usize) -> Option<u64> {
     (0..input.len() - nums)
-        .into_iter()
         .map(|i| &input[i..i + nums])
         .filter(|v| v.iter().sum::<u64>() == target)
         .filter_map(|v| {

@@ -6,7 +6,6 @@ pub fn part_1(input: &str) -> Result<String> {
     let prog = Program::parse(input.lines().next().context("Missing line in input")?)?;
     (0..5)
         .permutations(5)
-        .into_iter()
         .filter_map(|mut signals| {
             let mut input_signal = 0;
             while let Some(phase_signal) = signals.pop() {
@@ -55,7 +54,6 @@ pub fn part_2(input: &str) -> Result<String> {
     let prog = Program::parse(input.lines().next().context("Missing line in input")?)?;
     (5..=9)
         .permutations(5)
-        .into_iter()
         .filter_map(|phase_signals| feedback_loop(&prog, &phase_signals).ok())
         .max()
         .context("No combination found")

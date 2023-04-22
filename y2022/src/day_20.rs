@@ -1,3 +1,4 @@
+use crate::point_2d::Rem;
 use anyhow::{Context, Result};
 use itertools::Itertools;
 use std::collections::VecDeque;
@@ -34,7 +35,6 @@ fn solve_1(input: &str) -> Result<i64> {
         .find_position(|&(_, val)| *val == 0)
         .context("Lost 0")?;
     let n = (1..=3)
-        .into_iter()
         .map(|idx| (idx * 1000 + zero_loc).rem_euclid(deq.len()))
         .map(|idx| deq.get(idx).unwrap().1)
         .sum();
@@ -54,7 +54,6 @@ fn solve_2(input: &str) -> Result<i64> {
         .find_position(|&(_, val)| *val == 0)
         .context("Lost 0")?;
     let n = (1..=3)
-        .into_iter()
         .map(|idx| (idx * 1000 + zero_loc).rem_euclid(deq.len()))
         .map(|idx| deq.get(idx).unwrap().1)
         .sum();

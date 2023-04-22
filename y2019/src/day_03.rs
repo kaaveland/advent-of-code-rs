@@ -86,8 +86,8 @@ fn wire_points(wire: &Vec<Instruction>) -> FxHashMap<[i32; 2], u32> {
 pub fn part_1(input: &str) -> Result<String> {
     let (first, second) = parse_wires(input)?;
     let (first, second) = (wire_points(&first), wire_points(&second));
-    let first: FxHashSet<_> = first.keys().into_iter().collect();
-    let second: FxHashSet<_> = second.keys().into_iter().collect();
+    let first: FxHashSet<_> = first.keys().collect();
+    let second: FxHashSet<_> = second.keys().collect();
     let intersection = first.intersection(&second);
     intersection
         .into_iter()

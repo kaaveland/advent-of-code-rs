@@ -41,7 +41,6 @@ pub fn part_2(input: &str) -> Result<String> {
         .filter_map(|group| {
             let ((one, two), three) = group;
             one.chars()
-                .into_iter()
                 .find(|c| two.contains(*c) && three.contains(*c))
         })
         .collect();
