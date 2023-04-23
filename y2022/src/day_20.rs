@@ -1,3 +1,5 @@
+// intellij keeps putting this one back even though rustc says it's unused
+#[allow(unused_imports)]
 use crate::point_2d::Rem;
 use anyhow::{Context, Result};
 use itertools::Itertools;

@@ -101,7 +101,7 @@ fn next_state(came_from: &State, went_to: (i32, i32), tile: &Tile) -> Option<Sta
 }
 
 fn solve_maze(loc: (i32, i32), map: &Map) -> Result<usize> {
-    let all_keys = all_keys(&map);
+    let all_keys = all_keys(map);
     let mut queue = VecDeque::new();
     queue.push_back(State::new(loc));
     let mut cache = HashSet::default();
