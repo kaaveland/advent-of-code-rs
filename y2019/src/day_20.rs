@@ -12,13 +12,13 @@ pub fn part_1(input: &str) -> Result<String> {
     let map = parse_map(input);
     bfs(&map).map(|n| format!("{n}"))
 }
+const DXDY: [(i32, i32); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 
 fn bfs(map: &Map) -> Result<usize> {
     let (tiles, portals, start, goal) = map;
     let mut cache = HashSet::default();
     let mut queue = VecDeque::new();
     queue.push_back((*start, 0));
-    let dxdy = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 
     while let Some((loc, steps)) = queue.pop_front() {
         if *goal == loc {
@@ -30,7 +30,7 @@ fn bfs(map: &Map) -> Result<usize> {
                     queue.push_back((*other_side, steps + 1));
                 }
             }
-            for (dx, dy) in dxdy {
+            for (dx, dy) in DXDY {
                 let next = (loc.0 + dx, loc.1 + dy);
                 if tiles.contains(&next) && !cache.contains(&next) {
                     cache.insert(next);
@@ -58,7 +58,6 @@ fn bfs_with_levels(map: &Map) -> Result<usize> {
 
     queue.push_back((*start, 0i32, 0));
     let goal = (*goal, 0);
-    let dxdy = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 
     while let Some((loc, level, steps)) = queue.pop_front() {
         if goal == (loc, level) {
@@ -73,7 +72,7 @@ fn bfs_with_levels(map: &Map) -> Result<usize> {
                     queue.push_back((*other_side, next_level, steps + 1));
                 }
             }
-            for (dx, dy) in dxdy {
+            for (dx, dy) in DXDY {
                 let next = (loc.0 + dx, loc.1 + dy);
                 let cache_key = (next, level);
                 if tiles.contains(&next) && !cache.contains(&cache_key) {
@@ -150,6 +149,9 @@ impl<'a> MapReader<'a> {
     }
 }
 
+/// Look for horizontal sequences of either .XX or XX. where X is any
+/// upper case character and return (x, y, X, X) where (x, y) is the location of
+/// the dot
 fn read_left(input: &str) -> Vec<(i32, i32, u8, u8)> {
     let reader = MapReader::new(input);
 
@@ -174,6 +176,9 @@ fn read_left(input: &str) -> Vec<(i32, i32, u8, u8)> {
     endswith_dot.chain(startswith_dot).collect()
 }
 
+/// Look for vertical sequences of either .XX or XX. where X is any
+/// upper case character and return (x, y, X, X) where (x, y) is the location of
+/// the dot
 fn read_down(input: &str) -> Vec<(i32, i32, u8, u8)> {
     let reader = MapReader::new(input);
 
