@@ -13,7 +13,7 @@ pub fn part_1(input: &str) -> Result<String> {
     bfs(&map).map(|n| format!("{n}"))
 }
 
-pub fn bfs(map: &Map) -> Result<usize> {
+fn bfs(map: &Map) -> Result<usize> {
     let (tiles, portals, start, goal) = map;
     let mut cache = HashSet::default();
     let mut queue = VecDeque::new();
@@ -40,6 +40,55 @@ pub fn bfs(map: &Map) -> Result<usize> {
         }
     }
     Err(anyhow!("Unable to solve maze"))
+}
+
+fn bfs_with_levels(map: &Map) -> Result<usize> {
+    let (tiles, portals, start, goal) = map;
+    let columns = tiles.iter().map(|(x, _)| *x);
+    let left = columns.clone().min().unwrap();
+    let right = columns.max().unwrap();
+    let rows = tiles.iter().map(|(_, y)| *y);
+    let top = rows.clone().min().unwrap();
+    let bot = rows.max().unwrap();
+
+    let is_outside_edge = |(x, y)| x == left || x == right || y == top || y == bot;
+
+    let mut cache = HashSet::default();
+    let mut queue = VecDeque::new();
+
+    queue.push_back((*start, 0i32, 0));
+    let goal = (*goal, 0);
+    let dxdy = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+
+    while let Some((loc, level, steps)) = queue.pop_front() {
+        if goal == (loc, level) {
+            return Ok(steps);
+        } else {
+            if let Some(other_side) = portals.get(&loc) {
+                let level_change = if is_outside_edge(loc) { -1 } else { 1 };
+                let next_level = level + level_change;
+                let cache_key = (*other_side, next_level);
+                if !cache.contains(&cache_key) && next_level >= 0 {
+                    cache.insert(cache_key);
+                    queue.push_back((*other_side, next_level, steps + 1));
+                }
+            }
+            for (dx, dy) in dxdy {
+                let next = (loc.0 + dx, loc.1 + dy);
+                let cache_key = (next, level);
+                if tiles.contains(&next) && !cache.contains(&cache_key) {
+                    cache.insert(cache_key);
+                    queue.push_back((next, level, steps + 1));
+                }
+            }
+        }
+    }
+    Err(anyhow!("Unable to solve maze"))
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    let map = parse_map(input);
+    bfs_with_levels(&map).map(|n| format!("{n}"))
 }
 
 fn parse_map(input: &str) -> Map {
@@ -264,5 +313,49 @@ YN......#               VT..#....QG
     fn test_large_example() {
         let map = parse_map(LARGE_EXAMPLE);
         assert_eq!(bfs(&map).unwrap(), 58);
+    }
+
+    const P2_EXAMPLE: &str = "             Z L X W       C                 
+             Z P Q B       K                 
+  ###########.#.#.#.#######.###############  
+  #...#.......#.#.......#.#.......#.#.#...#  
+  ###.#.#.#.#.#.#.#.###.#.#.#######.#.#.###  
+  #.#...#.#.#...#.#.#...#...#...#.#.......#  
+  #.###.#######.###.###.#.###.###.#.#######  
+  #...#.......#.#...#...#.............#...#  
+  #.#########.#######.#.#######.#######.###  
+  #...#.#    F       R I       Z    #.#.#.#  
+  #.###.#    D       E C       H    #.#.#.#  
+  #.#...#                           #...#.#  
+  #.###.#                           #.###.#  
+  #.#....OA                       WB..#.#..ZH
+  #.###.#                           #.#.#.#  
+CJ......#                           #.....#  
+  #######                           #######  
+  #.#....CK                         #......IC
+  #.###.#                           #.###.#  
+  #.....#                           #...#.#  
+  ###.###                           #.#.#.#  
+XF....#.#                         RF..#.#.#  
+  #####.#                           #######  
+  #......CJ                       NM..#...#  
+  ###.#.#                           #.###.#  
+RE....#.#                           #......RF
+  ###.###        X   X       L      #.#.#.#  
+  #.....#        F   Q       P      #.#.#.#  
+  ###.###########.###.#######.#########.###  
+  #.....#...#.....#.......#...#.....#.#...#  
+  #####.#.###.#######.#######.###.###.#.#.#  
+  #.......#.......#.#.#.#.#...#...#...#.#.#  
+  #####.###.#####.#.#.#.#.###.###.#.###.###  
+  #.......#.....#.#...#...............#...#  
+  #############.#.#.###.###################  
+               A O F   N                     
+               A A D   M                     
+";
+    #[test]
+    fn test_p2() {
+        let map = parse_map(P2_EXAMPLE);
+        assert_eq!(bfs_with_levels(&map).unwrap(), 396);
     }
 }
