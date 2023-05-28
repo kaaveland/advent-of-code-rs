@@ -235,6 +235,19 @@ impl Program {
             self.exec_step()?;
         }
     }
+
+    pub fn step(&mut self, input_if_missing: i64) -> Result<bool, anyhow::Error> {
+        let instr = self.read_addr(self.instruction_pointer, Immediate);
+        let op: Operation = instr.try_into()?;
+        if matches!(op, Operation::Input) && self.input_pointer >= self.inputs.len() {
+            self.input(input_if_missing);
+        }
+        self.exec_step()
+    }
+
+    pub fn last_input_was(&self, input: i64) -> bool {
+        self.inputs.last().copied() == Some(input)
+    }
 }
 
 pub enum Output<T> {
