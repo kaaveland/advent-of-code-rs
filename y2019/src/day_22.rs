@@ -142,8 +142,9 @@ pub fn part_1(input: &str) -> Result<String> {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct LinearShuffle<const N: usize> {
-    scale: i64,
-    shift: i64,
+    // Would think i64 is enough, but it actually overflows somewhere and creates errors
+    scale: i128,
+    shift: i128,
 }
 
 impl<const N: usize> LinearShuffle<N> {
@@ -154,29 +155,30 @@ impl<const N: usize> LinearShuffle<N> {
     fn cut_n(n: i16) -> Self {
         LinearShuffle {
             scale: 1,
-            shift: -(n as i64),
+            shift: -(n as i128),
         }
     }
     fn deal_into_new_stack() -> Self {
         LinearShuffle {
             scale: -1,
-            shift: (N as i64) - 1,
+            shift: (N as i128) - 1,
         }
     }
     fn deal_with_increment_n(n: u16) -> Self {
         LinearShuffle {
-            scale: n as i64,
+            scale: n as i128,
             shift: 0,
         }
     }
     fn compose(self, other: Self) -> Self {
         LinearShuffle {
-            scale: (self.scale * other.scale) % (N as i64),
-            shift: (other.scale * self.shift + other.shift) % (N as i64),
+            scale: (self.scale * other.scale) % (N as i128),
+            shift: (other.scale * self.shift + other.shift) % (N as i128),
         }
+        .normalize()
     }
-    fn placement(self, x: i64) -> i64 {
-        (x * self.scale + self.shift).rem_euclid(N as i64)
+    fn placement(self, x: i128) -> i128 {
+        (x * self.scale + self.shift).rem_euclid(N as i128)
     }
 
     fn from(techniques: impl Iterator<Item = Technique>) -> Self {
@@ -197,6 +199,24 @@ impl<const N: usize> LinearShuffle<N> {
             self.compose(self.compose(self).repeat(times / 2))
         }
     }
+
+    fn normalize(self) -> LinearShuffle<N> {
+        LinearShuffle {
+            scale: self.scale.rem_euclid(N as i128),
+            shift: self.shift.rem_euclid(N as i128),
+        }
+    }
+
+    fn invert(self) -> LinearShuffle<N> {
+        let target = self.normalize();
+        let (gcd, a, _) = extended_gcd(target.scale, N as i128);
+        assert!(gcd == 1 || gcd == -1);
+        LinearShuffle {
+            scale: a,
+            shift: -a * target.shift,
+        }
+        .normalize()
+    }
 }
 
 impl<const N: usize> From<Technique> for LinearShuffle<N> {
@@ -209,37 +229,50 @@ impl<const N: usize> From<Technique> for LinearShuffle<N> {
     }
 }
 
+fn extended_gcd(a: i128, b: i128) -> (i128, i128, i128) {
+    if a == 0 {
+        if b < 0 {
+            (-b, 0, -1)
+        } else {
+            (b, 0, 1)
+        }
+    } else {
+        let (g, x, y) = extended_gcd(b % a, a);
+        (g, y - (b / a) * x, x)
+    }
+}
+
 pub fn part_2(input: &str) -> Result<String> {
     let techniques = parse_input(input)
         .map_err(|e| anyhow!("Failed to parse input: {e}"))?
         .1;
     let shuffle: LinearShuffle<119315717514047> = LinearShuffle::from(techniques.into_iter());
     let shuffle_repeats: u64 = 101741582076661;
-    let final_shuffle = shuffle.repeat(shuffle_repeats);
-
-    // Now we need to find some way to invert this f(x) = ax + b function we have.
-    // finding the inverse g(x) of f(x) means that f(g(x)) = x, in other words we need a g(x) such
-    // that f(g(x)) = ax, or LinearShuffle::default()
-    // Looking at the definition of compose again:
-    //     fn compose(self, other: Self) -> Self {
-    //         LinearShuffle {
-    //             scale: (self.scale * other.scale) % (N as i64),
-    //             shift: (other.scale * self.shift + other.shift) % (N as i64),
-    //         }
-    //     }
-    // That means that knowing scale_f and shift_f we need to find scale_g and shift_g such that
-    // scale_f * scale_g % N = 1 and scale_f * shift_g + shift_f = 0
-    // Let's work on the second one first, it seems easier. We have scale_f * shift_g + shift_f = 0
-    // and we should solve for shift_g: shift_g = -(shift_f / scale_f)
-    let invert_shift = -(final_shuffle.shift / final_shuffle.scale);
-    // Now we need to find scale_g such that scale_f * scale_g % N = 1
-
-    Ok("Not implemented yet".to_string())
+    let final_shuffle = shuffle.repeat(shuffle_repeats).normalize();
+    let invert = final_shuffle.invert();
+    assert_eq!(final_shuffle.compose(invert), LinearShuffle::default());
+    Ok(format!("{}", invert.placement(2020)))
 }
 
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    #[test]
+    fn test_that_inverting_any_shuffle_composed_with_itself_is_identity() {
+        fn check(shuf: LinearShuffle<37>) {
+            let inv = shuf.invert();
+            assert_eq!(shuf.compose(inv), LinearShuffle::default());
+        }
+        check(LinearShuffle::deal_into_new_stack());
+        check(LinearShuffle::cut_n(1).compose(LinearShuffle::deal_into_new_stack()));
+        check(
+            LinearShuffle::cut_n(-2)
+                .compose(LinearShuffle::deal_into_new_stack())
+                .compose(LinearShuffle::cut_n(3))
+                .compose(LinearShuffle::deal_with_increment_n(4)),
+        );
+    }
 
     #[test]
     fn test_that_repeating_reverse_even_times_is_identity() {
@@ -284,7 +317,7 @@ pub mod tests {
     fn test_that_reversing_once_is_reversed_new_deck_order() {
         let rev: LinearShuffle<10> = LinearShuffle::deal_into_new_stack();
         for (old, new) in (0..10).zip((0..10).rev()) {
-            assert_eq!(rev.placement(old), new as i64);
+            assert_eq!(rev.placement(old), new as i128);
         }
     }
 
@@ -308,7 +341,7 @@ pub mod tests {
         deck.apply_shuffles(&techniques);
         let shuffle: LinearShuffle<37> = LinearShuffle::from(techniques.into_iter());
         for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i64, shuffle.placement(*card as i64));
+            assert_eq!(i as i128, shuffle.placement(*card as i128));
         }
     }
 
@@ -319,7 +352,7 @@ pub mod tests {
         deck.apply_shuffles(&techniques);
         let shuffle: LinearShuffle<37> = LinearShuffle::cut_n(4);
         for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i64, shuffle.placement(*card as i64));
+            assert_eq!(i as i128, shuffle.placement(*card as i128));
         }
     }
     #[test]
@@ -330,7 +363,7 @@ pub mod tests {
         let shuffle: LinearShuffle<37> =
             LinearShuffle::deal_into_new_stack().compose(LinearShuffle::deal_into_new_stack());
         for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i64, shuffle.placement(*card as i64));
+            assert_eq!(i as i128, shuffle.placement(*card as i128));
         }
     }
 
@@ -342,7 +375,7 @@ pub mod tests {
         let shuffle: LinearShuffle<37> =
             LinearShuffle::default().compose(LinearShuffle::deal_with_increment_n(3));
         for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i64, shuffle.placement(*card as i64));
+            assert_eq!(i as i128, shuffle.placement(*card as i128));
         }
     }
 
@@ -355,7 +388,7 @@ pub mod tests {
             .compose(LinearShuffle::cut_n(4))
             .compose(LinearShuffle::deal_with_increment_n(3));
         for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i64, shuffle.placement(*card as i64));
+            assert_eq!(i as i128, shuffle.placement(*card as i128));
         }
     }
 
