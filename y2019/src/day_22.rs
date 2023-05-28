@@ -283,13 +283,13 @@ pub mod tests {
     #[test]
     fn test_that_repeating_reverse_odd_times_is_reverse() {
         let rev: LinearShuffle<20> = LinearShuffle::deal_into_new_stack();
-        assert_eq!(rev.repeat(11), rev);
+        assert_eq!(rev.repeat(11), rev.normalize());
     }
 
     #[test]
     fn test_that_repeating_cut_1_n_times_is_cut_n() {
-        let cut: LinearShuffle<20> = LinearShuffle::cut_n(1);
-        assert_eq!(cut.repeat(10), LinearShuffle::cut_n(10));
+        let cut: LinearShuffle<23> = LinearShuffle::cut_n(1);
+        assert_eq!(cut.repeat(10), LinearShuffle::cut_n(10).normalize());
     }
 
     #[test]
