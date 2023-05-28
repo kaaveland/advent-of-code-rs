@@ -184,6 +184,19 @@ impl<const N: usize> LinearShuffle<N> {
             acc.compose(technique.into())
         })
     }
+
+    /// Basically exponentiation by repeated squaring
+    fn repeat(self, times: u64) -> LinearShuffle<N> {
+        if times == 0 {
+            LinearShuffle::default()
+        } else if times == 1 {
+            self
+        } else if times % 2 == 0 {
+            self.compose(self).repeat(times / 2)
+        } else {
+            self.compose(self.compose(self).repeat(times / 2))
+        }
+    }
 }
 
 impl<const N: usize> From<Technique> for LinearShuffle<N> {
@@ -197,12 +210,65 @@ impl<const N: usize> From<Technique> for LinearShuffle<N> {
 }
 
 pub fn part_2(input: &str) -> Result<String> {
+    let techniques = parse_input(input)
+        .map_err(|e| anyhow!("Failed to parse input: {e}"))?
+        .1;
+    let shuffle: LinearShuffle<119315717514047> = LinearShuffle::from(techniques.into_iter());
+    let shuffle_repeats: u64 = 101741582076661;
+    let final_shuffle = shuffle.repeat(shuffle_repeats);
+
+    // Now we need to find some way to invert this f(x) = ax + b function we have.
+    // finding the inverse g(x) of f(x) means that f(g(x)) = x, in other words we need a g(x) such
+    // that f(g(x)) = ax, or LinearShuffle::default()
+    // Looking at the definition of compose again:
+    //     fn compose(self, other: Self) -> Self {
+    //         LinearShuffle {
+    //             scale: (self.scale * other.scale) % (N as i64),
+    //             shift: (other.scale * self.shift + other.shift) % (N as i64),
+    //         }
+    //     }
+    // That means that knowing scale_f and shift_f we need to find scale_g and shift_g such that
+    // scale_f * scale_g % N = 1 and scale_f * shift_g + shift_f = 0
+    // Let's work on the second one first, it seems easier. We have scale_f * shift_g + shift_f = 0
+    // and we should solve for shift_g: shift_g = -(shift_f / scale_f)
+    let invert_shift = -(final_shuffle.shift / final_shuffle.scale);
+    // Now we need to find scale_g such that scale_f * scale_g % N = 1
+
     Ok("Not implemented yet".to_string())
 }
 
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    #[test]
+    fn test_that_repeating_reverse_even_times_is_identity() {
+        let rev: LinearShuffle<20> = LinearShuffle::deal_into_new_stack();
+        assert_eq!(rev.repeat(30), LinearShuffle::default());
+    }
+
+    #[test]
+    fn test_that_repeating_reverse_odd_times_is_reverse() {
+        let rev: LinearShuffle<20> = LinearShuffle::deal_into_new_stack();
+        assert_eq!(rev.repeat(11), rev);
+    }
+
+    #[test]
+    fn test_that_repeating_cut_1_n_times_is_cut_n() {
+        let cut: LinearShuffle<20> = LinearShuffle::cut_n(1);
+        assert_eq!(cut.repeat(10), LinearShuffle::cut_n(10));
+    }
+
+    #[test]
+    fn test_that_repeating_combination_makes_sense() {
+        let shuffle: LinearShuffle<13> = LinearShuffle::cut_n(1)
+            .compose(LinearShuffle::deal_into_new_stack())
+            .compose(LinearShuffle::deal_into_new_stack());
+        let result = shuffle.repeat(5);
+        let expect: LinearShuffle<13> = LinearShuffle::cut_n(5);
+        assert_eq!(result.scale, expect.scale);
+        assert_eq!(result.shift.rem_euclid(13), expect.shift.rem_euclid(13));
+    }
 
     #[test]
     fn test_that_reverse_twice_is_new_deck_order() {
