@@ -1,69 +1,7 @@
 use anyhow::{anyhow, Result};
 use nom::IResult;
-use std::collections::VecDeque;
 
 const DECK_SIZE: usize = 10007;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Deck {
-    cards: VecDeque<u16>,
-    shuffle_area: Vec<u16>,
-}
-
-impl Deck {
-    #[allow(dead_code)]
-    fn new(cards: u16) -> Self {
-        Deck {
-            cards: (0..cards).collect(),
-            shuffle_area: vec![0; cards as usize],
-        }
-    }
-
-    #[allow(dead_code)]
-    fn deal_into_new_stack(self: &mut Deck) {
-        // Deal entire deck from top into new stack; effectively reversing it
-        self.cards.make_contiguous().reverse();
-    }
-
-    #[allow(dead_code)]
-    fn cut(self: &mut Deck, n: i16) {
-        // Retain order of the cut in both cases; then:
-        if n > 0 {
-            // Cut n cards from top of deck and place at bottom
-            self.cards.rotate_left(n as usize);
-        } else {
-            // Cut n cards from bottom of deck and place at top
-            self.cards.rotate_right(-n as usize);
-        }
-    }
-    #[allow(dead_code)]
-    fn deal_with_increment(self: &mut Deck, n: u16) {
-        let mut pos = 0; // start at left of shuffle area
-        while let Some(top) = self.cards.pop_front() {
-            assert_eq!(self.shuffle_area[pos], 0);
-            self.shuffle_area[pos] = top;
-            pos = (pos + n as usize) % self.shuffle_area.len();
-        }
-        self.cards.extend(self.shuffle_area.iter());
-        self.shuffle_area.iter_mut().for_each(|c| *c = 0);
-    }
-
-    #[allow(dead_code)]
-    fn shuffle(self: &mut Deck, technique: Technique) {
-        match technique {
-            Technique::DealIntoNewStack => self.deal_into_new_stack(),
-            Technique::Cut(n) => self.cut(n),
-            Technique::DealWithIncrement(n) => self.deal_with_increment(n),
-        }
-    }
-
-    #[allow(dead_code)]
-    fn apply_shuffles(self: &mut Deck, shuffles: &[Technique]) {
-        for shuffle in shuffles {
-            self.shuffle(*shuffle);
-        }
-    }
-}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 enum Technique {
@@ -257,6 +195,7 @@ pub fn part_2(input: &str) -> Result<String> {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use std::collections::VecDeque;
 
     #[test]
     fn test_that_inverting_any_shuffle_composed_with_itself_is_identity() {
@@ -464,5 +403,58 @@ cut -1";
         let mut deck = Deck::new(10);
         deck.cut(-4);
         assert_eq!(deck.cards, vec![6, 7, 8, 9, 0, 1, 2, 3, 4, 5]);
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    struct Deck {
+        cards: VecDeque<u16>,
+        shuffle_area: Vec<u16>,
+    }
+
+    impl Deck {
+        fn new(cards: u16) -> Self {
+            Deck {
+                cards: (0..cards).collect(),
+                shuffle_area: vec![0; cards as usize],
+            }
+        }
+
+        fn deal_into_new_stack(self: &mut Deck) {
+            // Deal entire deck from top into new stack; effectively reversing it
+            self.cards.make_contiguous().reverse();
+        }
+
+        fn cut(self: &mut Deck, n: i16) {
+            // Retain order of the cut in both cases; then:
+            if n > 0 {
+                // Cut n cards from top of deck and place at bottom
+                self.cards.rotate_left(n as usize);
+            } else {
+                // Cut n cards from bottom of deck and place at top
+                self.cards.rotate_right(-n as usize);
+            }
+        }
+        fn deal_with_increment(self: &mut Deck, n: u16) {
+            let mut pos = 0; // start at left of shuffle area
+            while let Some(top) = self.cards.pop_front() {
+                assert_eq!(self.shuffle_area[pos], 0);
+                self.shuffle_area[pos] = top;
+                pos = (pos + n as usize) % self.shuffle_area.len();
+            }
+            self.cards.extend(self.shuffle_area.iter());
+            self.shuffle_area.iter_mut().for_each(|c| *c = 0);
+        }
+        fn shuffle(self: &mut Deck, technique: Technique) {
+            match technique {
+                Technique::DealIntoNewStack => self.deal_into_new_stack(),
+                Technique::Cut(n) => self.cut(n),
+                Technique::DealWithIncrement(n) => self.deal_with_increment(n),
+            }
+        }
+        fn apply_shuffles(self: &mut Deck, shuffles: &[Technique]) {
+            for shuffle in shuffles {
+                self.shuffle(*shuffle);
+            }
+        }
     }
 }
