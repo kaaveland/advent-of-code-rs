@@ -195,139 +195,52 @@ pub fn part_2(input: &str) -> Result<String> {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use quickcheck::{quickcheck, Arbitrary, Gen};
     use std::collections::VecDeque;
+    // Require N to be a prime number for LinearShuffle<N>::invert to work in the general case
+    // (From modular multiplicative inverse)
+    const TEST_DECK_SIZE: usize = 1597;
 
-    #[test]
-    fn test_that_inverting_any_shuffle_composed_with_itself_is_identity() {
-        fn check(shuf: LinearShuffle<37>) {
+    impl Arbitrary for Technique {
+        fn arbitrary(g: &mut Gen) -> Self {
+            let choice = u8::arbitrary(g).rem_euclid(3);
+            match choice {
+                0 => Technique::DealIntoNewStack,
+                1 => Technique::Cut(i16::arbitrary(g) % (TEST_DECK_SIZE as i16)),
+                2 => loop {
+                    let n = u16::arbitrary(g) % (TEST_DECK_SIZE as u16);
+                    if n != 0 {
+                        return Technique::DealWithIncrement(n);
+                    }
+                },
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    quickcheck! {
+        fn compose_inverted_shuffle_with_itself_yields_identity(shuffle: Vec<Technique> ) -> bool {
+            let shuf: LinearShuffle<TEST_DECK_SIZE> = LinearShuffle::from(shuffle.into_iter());
             let inv = shuf.invert();
-            assert_eq!(shuf.compose(inv), LinearShuffle::default());
+            shuf.compose(inv) == LinearShuffle::default()
         }
-        check(LinearShuffle::deal_into_new_stack());
-        check(LinearShuffle::cut_n(1).compose(LinearShuffle::deal_into_new_stack()));
-        check(
-            LinearShuffle::cut_n(-2)
-                .compose(LinearShuffle::deal_into_new_stack())
-                .compose(LinearShuffle::cut_n(3))
-                .compose(LinearShuffle::deal_with_increment_n(4)),
-        );
-    }
 
-    #[test]
-    fn test_that_repeating_reverse_even_times_is_identity() {
-        let rev: LinearShuffle<20> = LinearShuffle::deal_into_new_stack();
-        assert_eq!(rev.repeat(30), LinearShuffle::default());
-    }
-
-    #[test]
-    fn test_that_repeating_reverse_odd_times_is_reverse() {
-        let rev: LinearShuffle<20> = LinearShuffle::deal_into_new_stack();
-        assert_eq!(rev.repeat(11), rev.normalize());
-    }
-
-    #[test]
-    fn test_that_repeating_cut_1_n_times_is_cut_n() {
-        let cut: LinearShuffle<23> = LinearShuffle::cut_n(1);
-        assert_eq!(cut.repeat(10), LinearShuffle::cut_n(10).normalize());
-    }
-
-    #[test]
-    fn test_that_repeating_combination_makes_sense() {
-        let shuffle: LinearShuffle<13> = LinearShuffle::cut_n(1)
-            .compose(LinearShuffle::deal_into_new_stack())
-            .compose(LinearShuffle::deal_into_new_stack());
-        let result = shuffle.repeat(5);
-        let expect: LinearShuffle<13> = LinearShuffle::cut_n(5);
-        assert_eq!(result.scale, expect.scale);
-        assert_eq!(result.shift.rem_euclid(13), expect.shift.rem_euclid(13));
-    }
-
-    #[test]
-    fn test_that_reverse_twice_is_new_deck_order() {
-        let rev: LinearShuffle<20> = LinearShuffle::deal_into_new_stack();
-        let rev_rev = rev.compose(rev);
-        assert_eq!(rev_rev, LinearShuffle::default());
-        for i in 0..20 {
-            assert_eq!(rev_rev.placement(i), i);
+        fn any_shuffle_move_is_equivalent_to_its_technique_shuffle(technique: Technique) -> bool {
+            let shuf: LinearShuffle<TEST_DECK_SIZE> = technique.into();
+            let mut deck = Deck::new(TEST_DECK_SIZE as u16);
+            deck.apply_shuffles(&[technique]);
+            deck.cards.into_iter().enumerate().all(|(pos, card)|
+                shuf.placement(card as i128) == pos as i128
+            )
         }
-    }
 
-    #[test]
-    fn test_that_reversing_once_is_reversed_new_deck_order() {
-        let rev: LinearShuffle<10> = LinearShuffle::deal_into_new_stack();
-        for (old, new) in (0..10).zip((0..10).rev()) {
-            assert_eq!(rev.placement(old), new as i128);
-        }
-    }
-
-    #[test]
-    fn test_that_cut_n_is_inverse_of_cut_minus_n() {
-        let cut_pos: LinearShuffle<200> = LinearShuffle::cut_n(255);
-        let cut_neg = LinearShuffle::cut_n(-255);
-        assert_eq!(cut_pos.compose(cut_neg), LinearShuffle::default());
-    }
-
-    #[test]
-    fn test_compare_simple_to_coefficient_shuffle() {
-        let mut deck = Deck::new(37);
-        let techniques = vec![
-            Technique::Cut(4),
-            Technique::DealIntoNewStack,
-            Technique::Cut(-17),
-            Technique::DealIntoNewStack,
-            Technique::DealWithIncrement(3),
-        ];
-        deck.apply_shuffles(&techniques);
-        let shuffle: LinearShuffle<37> = LinearShuffle::from(techniques.into_iter());
-        for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i128, shuffle.placement(*card as i128));
-        }
-    }
-
-    #[test]
-    fn test_equivalence_of_cut_n() {
-        let mut deck = Deck::new(37);
-        let techniques = vec![Technique::Cut(4)];
-        deck.apply_shuffles(&techniques);
-        let shuffle: LinearShuffle<37> = LinearShuffle::cut_n(4);
-        for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i128, shuffle.placement(*card as i128));
-        }
-    }
-    #[test]
-    fn test_equivalence_of_reverse_twice() {
-        let mut deck = Deck::new(37);
-        let techniques = vec![Technique::DealIntoNewStack, Technique::DealIntoNewStack];
-        deck.apply_shuffles(&techniques);
-        let shuffle: LinearShuffle<37> =
-            LinearShuffle::deal_into_new_stack().compose(LinearShuffle::deal_into_new_stack());
-        for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i128, shuffle.placement(*card as i128));
-        }
-    }
-
-    #[test]
-    fn test_equivalence_of_deal_with_increment() {
-        let mut deck = Deck::new(37);
-        let techniques = vec![Technique::DealWithIncrement(3)];
-        deck.apply_shuffles(&techniques);
-        let shuffle: LinearShuffle<37> =
-            LinearShuffle::default().compose(LinearShuffle::deal_with_increment_n(3));
-        for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i128, shuffle.placement(*card as i128));
-        }
-    }
-
-    #[test]
-    fn test_equivalence_of_cut_deal_with_increment() {
-        let mut deck = Deck::new(37);
-        let techniques = vec![Technique::Cut(4), Technique::DealWithIncrement(3)];
-        deck.apply_shuffles(&techniques);
-        let shuffle: LinearShuffle<37> = LinearShuffle::default()
-            .compose(LinearShuffle::cut_n(4))
-            .compose(LinearShuffle::deal_with_increment_n(3));
-        for (i, card) in deck.cards.iter().enumerate() {
-            assert_eq!(i as i128, shuffle.placement(*card as i128));
+        fn any_combination_of_shuffle_moves_is_equal_to_its_technique_shuffle(shuffle: Vec<Technique>) -> bool {
+            let mut deck = Deck::new(TEST_DECK_SIZE as u16);
+            deck.apply_shuffles(&shuffle);
+            let shuf: LinearShuffle<TEST_DECK_SIZE> = LinearShuffle::from(shuffle.into_iter());
+            deck.cards.into_iter().enumerate().all(|(pos, card)|
+                shuf.placement(card as i128) == pos as i128
+            )
         }
     }
 
