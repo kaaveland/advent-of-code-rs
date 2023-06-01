@@ -52,7 +52,7 @@ pub fn part_2(input: &str) -> Result<String> {
     }
 
     // Find the ball / paddle by playing until the game expects input
-    for chunk in prog.require_input()?.chunks(3) {
+    for chunk in prog.require_input(false)?.chunks(3) {
         update_from_chunk(&mut paddle, &mut ball, &mut blocks, chunk);
     }
 
@@ -63,7 +63,7 @@ pub fn part_2(input: &str) -> Result<String> {
             prog.input(dx);
         }
         // Play until input is required again
-        for chunk in prog.require_input()?.chunks(3) {
+        for chunk in prog.require_input(true)?.chunks(3) {
             update_from_chunk(&mut paddle, &mut ball, &mut blocks, chunk);
             if chunk[0] == -1 {
                 score = chunk[2];

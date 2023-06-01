@@ -2,6 +2,7 @@ use crate::intcode::ParameterMode::Immediate;
 use anyhow::{anyhow, Context};
 use fxhash::FxHashMap as HashMap;
 use itertools::Itertools;
+use std::iter::once;
 use std::num::ParseIntError;
 
 type Instructions = Vec<i64>;
@@ -224,13 +225,15 @@ impl Program {
     }
 
     /// Run until Self requires an input, returning all new outputs
-    pub fn require_input(&mut self) -> Result<&[i64], anyhow::Error> {
+    pub fn require_input(&mut self, ignore_halt: bool) -> Result<&[i64], anyhow::Error> {
         let available_outputs = self.outputs.len();
         loop {
             let instr = self.read_addr(self.instruction_pointer, Immediate);
             let op: Operation = instr.try_into()?;
             if matches!(op, Operation::Input) && self.input_pointer >= self.inputs.len() {
                 return Ok(&self.outputs[available_outputs..self.outputs.len()]);
+            } else if matches!(op, Operation::Halt) && !ignore_halt {
+                return Err(anyhow!("Halted"));
             }
             self.exec_step()?;
         }
@@ -247,6 +250,23 @@ impl Program {
 
     pub fn last_input_was(&self, input: i64) -> bool {
         self.inputs.last().copied() == Some(input)
+    }
+
+    pub fn fork(&self) -> Self {
+        Self::clone(self)
+    }
+
+    pub fn ascii_input(&mut self, line: &str) {
+        line.trim_end()
+            .chars()
+            .map(|c| c as i64)
+            .chain(once(10))
+            .for_each(|c| self.inputs.push(c))
+    }
+
+    pub fn require_ascii_output(&mut self) -> Result<String, anyhow::Error> {
+        self.require_input(false)
+            .map(|output| output.iter().map(|ch| (*ch as u8) as char).join(""))
     }
 }
 

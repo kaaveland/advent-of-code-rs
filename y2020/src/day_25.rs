@@ -52,7 +52,7 @@ pub fn part_1(input: &str) -> Result<String> {
 }
 
 pub fn part_2(_input: &str) -> Result<String> {
-    Ok("Enter the sollutions, collect stars".to_string())
+    Ok("Enter the solutions, collect stars".to_string())
 }
 
 #[cfg(test)]
