@@ -29,6 +29,7 @@ dependencies = [
  "regex",
  "reqwest",
  "shared",
+ "y2018",
  "y2019",
  "y2020",
  "y2021",
@@ -1350,6 +1351,14 @@ dependencies = [
 name = "y2018"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "fxhash",
+ "itertools",
+ "nom",
+ "once_cell",
+ "quickcheck",
+ "rayon",
+ "regex",
  "shared",
 ]
 

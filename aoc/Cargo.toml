@@ -12,6 +12,7 @@ itertools = "0.10"
 rayon = "1.6"
 fxhash = "0.2"
 shared = { path = "../shared" }
+y2018 = { path = "../y2018" }
 y2019 = { path = "../y2019" }
 y2020 = { path = "../y2020" }
 y2021 = { path = "../y2021" }
