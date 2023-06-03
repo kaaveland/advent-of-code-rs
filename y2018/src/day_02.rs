@@ -82,6 +82,7 @@ pub fn part_2(input: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use fxhash::FxHashSet as HashSet;
     use quickcheck::quickcheck;
 
     #[test]
@@ -141,8 +142,8 @@ wvxyz";
             closest_match(words.as_str()).is_some() == (lines > 1)
         }
         fn inequal_letters_is_at_least_1(words: String) -> bool {
-            let lines = words.lines().filter(|line| !line.is_empty()).count();
-            lines < 2 || closest_match(words.as_str()).unwrap().0 > 0
+            let unique_words: HashSet<_> = words.lines().filter(|w| !w.is_empty()).collect();
+            unique_words.len() < 2 || closest_match(words.as_str()).unwrap().0 > 0
         }
     }
 }
