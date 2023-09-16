@@ -8,3 +8,4 @@ members = [
     "y2021",
     "y2022",
 ]
+resolver = "2"

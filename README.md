@@ -18,7 +18,7 @@ Progress
 - 2022: ✅ Time (mean ± σ):     177.2 ms ±   4.0 ms
 - 2021: ✅ Time (mean ± σ):     101.0 ms ±   2.8 ms
 - 2020: ✅ Time (mean ± σ):     601.8 ms ±  10.7 ms
-- 2019: WIP
+- 2019: ✅ Time (mean ± σ):     291.8 ms ±  12.3 ms
 
 Usage
 ==
@@ -169,7 +169,7 @@ Code, structure and tests
 
 [lib.rs](aoc/src/lib.rs) adds all the solution programs to a static data structure,
 they are all public modules. [dl_data.rs](aoc/src/dl_data.rs) has some simple and
-stupid code for connecting to adventofcode.com using a blocking [reqwest](https://docs.rs/reqwest/latest/reqwest/) 
+stupid code for connecting to adventofcode.com using a blocking [reqwest](https://docs.rs/reqwest/latest/reqwest/)
 http client by annoyingly prompting you for your cookie, which it does not store anywhere after
 use. [main.rs](aoc/src/main.rs) uses [clap](https://docs.rs/clap/latest/clap/) to
 expose all this to the command line. The code uses [anyhow](https://docs.rs/anyhow/latest/anyhow/)
@@ -185,7 +185,7 @@ Solution comments
 
 2020 learning/impressions:
 
-- Compile times were getting long enough to be annoying at this point, but switching the layout of the repo to use 
+- Compile times were getting long enough to be annoying at this point, but switching the layout of the repo to use
   cargo workspaces basically fixed that. I'm sure there's some way to add common dependencies on the top level
   instead of in each crate in the workspace, but I don't mind.
 - [Day 15](y2020/src/day_15.rs) is very slow, I think I could probably cut the time by half if I could find a way
@@ -195,7 +195,7 @@ Solution comments
   we were done when we had assembled the image; did not really enjoy the last leg of finding the seamonsters here.
 - I looked into parsing with [nom](https://docs.rs/nom/5.0.0/nom/) for this year, it's a really pleasant crate that
   I will find many other uses for eventually.
-- There were several constraint propagation problems this year, and I just love rediscovering this algorithm of 
+- There were several constraint propagation problems this year, and I just love rediscovering this algorithm of
   choose/eliminate. [Day 16](y2020/src/day_16.rs) and [Day 21](y2020/src/day_21.rs) were both really fun. Once you
   know how to formulate the choose/eliminate operations and data structures, they're quite easy. It was a little
   disappointing that neither required the addition of search to implement, but I guess that would've made them
@@ -208,7 +208,7 @@ Solution comments
 - Rust is a little easier once you lean into the fact that references are Copy and AOC puzzles often lend themselves
   more naturally towards mutating stuff, especially the "100 times do X, then do Y" kind of puzzles. I normally prefer
   creating new values, but the borrow checker makes me feel a bit safer in using mutable references. Not sure how I feel
-  about this yet. 
+  about this yet.
 
 2021 learning/impressions:
 
@@ -217,7 +217,7 @@ Solution comments
   solution, but I invented my technique from first principles and it was very rewarding to come up with it. It
   will only attempt rotations on 1 point when attempting to find out how to connect scanners, avoiding a lot
   of work at the cost of some complexity in finding out which point to rotate.
-- [Day 22](y2021/src/day_22.rs) has an interesting solution based on a tree of cuboid intersections where 
+- [Day 22](y2021/src/day_22.rs) has an interesting solution based on a tree of cuboid intersections where
   volume alternates between being added and removed depending on the depth of the tree.
   It is fast and a _lot_ easier than attempting to split cubes. Draw some venn diagrams
   of a simplified version in 2D, and it should be easy to see why it works.
@@ -227,7 +227,7 @@ Solution comments
   and all the complexity is in managing state transitions. In hindsight, I think it may be simpler to just represent
   state as a bytestring here.
 - [Day 5](y2021/src/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by hand to do this.
-  It is much faster than using set intersection, but really hard to read and understand why it works. Not my proudest 
+  It is much faster than using set intersection, but really hard to read and understand why it works. Not my proudest
   moment, but it was also OK to do some simple math, I don't do a lot of this stuff for a living.
 - [Day 20](y2021/src/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a `HashMap` to
   a `Vec`. I knew it was likely to be faster from the start, but the code is so much simpler when using a `HashMap` and I was
@@ -251,8 +251,8 @@ Rust comments
 - It is unfortunately a bit annoying to pass around iterators as arguments and the fact that there's no
   GC means that sometimes they must be consumed a lot sooner than I had planned for while writing the code.
   I'm still not really sure how to deal with the fact that each closure is a different type, I was often collecting
-  data into `Vec`s that I would immediately consume again to work around this, or passing in mutable `Vec`s that I 
-  could `extend()` iterators into. 
+  data into `Vec`s that I would immediately consume again to work around this, or passing in mutable `Vec`s that I
+  could `extend()` iterators into.
 - Rust is relatively verbose. Often times I can find a clean and easy solution to a particular problem
   that I could _never_ manage to write in C, but then I have to deal with all the error conditions that I
   would never know about in C afterwards. Overall it doesn't feel too verbose, but I would have less than
