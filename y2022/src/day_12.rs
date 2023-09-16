@@ -47,7 +47,7 @@ fn generate_moves(source: usize, width: usize, height: usize) -> Vec<usize> {
     } else {
         None
     };
-    let choices = vec![left, right, down, up];
+    let choices = [left, right, down, up];
     choices.iter().filter_map(|choice| *choice).collect()
 }
 

@@ -44,7 +44,7 @@ pub fn part_1(input: &str) -> Result<String> {
     let prog = Program::parse(input.trim_end())?;
     let mut computers = make_computers(&prog);
     let mut output_pointers = vec![0; 50];
-    let mut halted = vec![false; 50];
+    let mut halted = [false; 50];
     let mut input_queue = VecDeque::new();
 
     while halted.iter().any(|h| !*h) {

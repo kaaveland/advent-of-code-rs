@@ -95,7 +95,7 @@ fn parse_map(input: &str) -> Map {
     let mut portals_by_name = HashMap::default();
     let mut portals = HashMap::default();
     let mut ports = read_left(input);
-    ports.extend(read_down(input).into_iter());
+    ports.extend(read_down(input));
 
     for (x, y, first_char, second_char) in ports {
         let has = portals_by_name.get(&(first_char, second_char));

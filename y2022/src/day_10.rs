@@ -268,7 +268,7 @@ noop
     #[test]
     fn test_large_example() {
         let prog = parse_instructions(LARGE_EXAMPLE.lines());
-        let cycles_read = vec![20, 60, 100, 140, 180, 220];
+        let cycles_read = [20, 60, 100, 140, 180, 220];
         let mut sum = 0;
 
         for (index, register) in prog.enumerate() {
