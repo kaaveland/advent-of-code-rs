@@ -51,6 +51,13 @@ fn node_value(node: &Node) -> u32 {
             .sum::<u32>()
     }
 }
+
+pub fn part_2(input: &str) -> Result<String> {
+    let v = parse(input)?;
+    let node = parse_nodes(&mut v.iter().copied()).context("Parse error")?;
+    Ok(node_value(&node).to_string())
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
