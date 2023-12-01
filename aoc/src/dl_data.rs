@@ -1,10 +1,22 @@
-use anyhow::{anyhow, Result};
+use crate::YEARS;
+use anyhow::{anyhow, Context, Result};
 use reqwest::blocking::{Client, ClientBuilder};
 use std::fs::File;
 use std::io::Write;
 use std::{fs, io};
 
-fn obtain_cookie() -> Result<String> {
+fn obtain_cookie_from_disk() -> Result<Option<String>> {
+    let home = dirs::home_dir().context("Unable to resolve $HOME")?;
+    let cookie_path = home.join(".aoc_cookie");
+    Ok(fs::read_to_string(cookie_path).ok())
+}
+fn write_cookie_to_disk(cookie: &str) -> Result<()> {
+    let home = dirs::home_dir().context("Unable to resolve $HOME")?;
+    let cookie_path = home.join(".aoc_cookie");
+    Ok(fs::write(cookie_path, cookie)?)
+}
+
+fn cookie_fallback() -> Result<String> {
     println!("Enter your advent of code session cookie");
     let mut buf = String::new();
     let read = io::stdin().read_line(&mut buf)?;
@@ -17,14 +29,41 @@ fn obtain_cookie() -> Result<String> {
     }
 }
 
-fn obtain_user_agent() -> Result<String> {
-    println!("Enter an email account that can be used to contact you");
-    let mut buf = String::new();
-    io::stdin().read_line(&mut buf)?;
-    if !buf.contains('@') {
-        Err(anyhow!("Not a valid email account: {buf}"))
+fn obtain_cookie() -> Result<String> {
+    if let Some(cookie) = obtain_cookie_from_disk()? {
+        Ok(cookie)
     } else {
-        Ok(buf.trim().to_string())
+        let cookie = cookie_fallback()?;
+        write_cookie_to_disk(cookie.as_str())?;
+        Ok(cookie)
+    }
+}
+
+fn obtain_user_agent_from_disk() -> Result<Option<String>> {
+    let home = dirs::home_dir().context("Unable to resolve $HOME")?;
+    let uagent_path = home.join(".aoc_uagent");
+    Ok(fs::read_to_string(uagent_path).ok())
+}
+
+fn write_user_agent_to_disk(uagent: &str) -> Result<()> {
+    let home = dirs::home_dir().context("Unable to resolve $HOME")?;
+    let uagent_path = home.join(".aoc_uagent");
+    Ok(fs::write(uagent_path, uagent)?)
+}
+
+fn obtain_user_agent() -> Result<String> {
+    if let Some(agent) = obtain_user_agent_from_disk()? {
+        Ok(agent)
+    } else {
+        println!("Enter an email account that can be used to contact you");
+        let mut buf = String::new();
+        io::stdin().read_line(&mut buf)?;
+        if !buf.contains('@') {
+            Err(anyhow!("Not a valid email account: {buf}"))
+        } else {
+            write_user_agent_to_disk(buf.trim())?;
+            Ok(buf.trim().to_string())
+        }
     }
 }
 
@@ -52,9 +91,10 @@ fn download_day(client: &Client, cookie: &str, year: u16, day: u8) -> Result<Str
 }
 
 fn valid_data(year: u16, day: u8) -> Result<()> {
-    if !((1..=25).contains(&day) && (2015..=2022).contains(&year)) {
+    let years: Vec<_> = YEARS.iter().map(|(y, _)| *y).collect();
+    if !((1..=25).contains(&day) && years.contains(&year)) {
         Err(anyhow!(
-            "Day should be between 1 and 25 and year between 2015 and 2022, got {day} and {year}"
+            "Day should be between 1 and 25 and year from {years:?}, got {day} and {year}"
         ))
     } else {
         Ok(())

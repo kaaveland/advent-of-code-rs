@@ -7,12 +7,13 @@ use std::time::Instant;
 
 pub mod dl_data;
 
-const YEARS: [(u16, [Solution; 25]); 5] = [
+const YEARS: [(u16, [Solution; 25]); 6] = [
     (2018, y2018::SOLUTIONS),
     (2019, y2019::SOLUTIONS),
     (2020, y2020::SOLUTIONS),
     (2021, y2021::SOLUTIONS),
     (2022, y2022::SOLUTIONS),
+    (2023, y2023::SOLUTIONS),
 ];
 
 pub fn available_years() -> Vec<u16> {
