@@ -10,15 +10,17 @@ easy to take out some code and run independently.
 
 For year 2022, the focus was mostly to get familiar with Rust and the stdlib. There's a variety of
 error handling, from none at all to matching against `Option`s or `Result`s to using the `?` operator
-with `anyhow::Result`. For year 2021 I wanted to write code that performs well.
+with `anyhow::Result`. For year 2021 and earlier, I wanted to write code that performs well.
 
 Progress
 ==
 
+- 2023: WIP
 - 2022: ✅ Time (mean ± σ):     177.2 ms ±   4.0 ms
 - 2021: ✅ Time (mean ± σ):     101.0 ms ±   2.8 ms
 - 2020: ✅ Time (mean ± σ):     601.8 ms ±  10.7 ms
 - 2019: ✅ Time (mean ± σ):     291.8 ms ±  12.3 ms
+- 2018: WIP
 
 Usage
 ==
@@ -170,7 +172,7 @@ Code, structure and tests
 [lib.rs](aoc/src/lib.rs) adds all the solution programs to a static data structure,
 they are all public modules. [dl_data.rs](aoc/src/dl_data.rs) has some simple and
 stupid code for connecting to adventofcode.com using a blocking [reqwest](https://docs.rs/reqwest/latest/reqwest/)
-http client by annoyingly prompting you for your cookie, which it does not store anywhere after
+http client by annoyingly prompting you for your cookie, which it does stores in `~/.aoc_cookie` after
 use. [main.rs](aoc/src/main.rs) uses [clap](https://docs.rs/clap/latest/clap/) to
 expose all this to the command line. The code uses [anyhow](https://docs.rs/anyhow/latest/anyhow/)
 throughout to make the `?` operator a bit more ergonomic.
@@ -183,6 +185,23 @@ Learning points
 Solution comments
 --
 
+2019 learning/impressions:
+
+- The intcode machine was amazing and quite challenging, eventually. I loved trying to tinker with it
+  to avoid having to make big changes to solve the later stages of the calendar, when the requirements for
+  the machine became more and more complex.
+- I'm quite satisfied with my modeling for [Day 24](y2019/src/day_24.rs), where I felt like I was able to
+  utilize traits in a good way to achieve both reuse between part 1 and part 2 in the "right way".
+- I played [Day 25](y2019/src/day_25.rs) manually, then hardcoded the script, after my automatic program ran afoul of f. ex.
+  the infinite loop, and I decided that there were too many trips to deal with.
+- [Day 22](y2019/src/day_22.rs) was a lot of fun! It was also great to have the naive implementation
+  for when I needed the clever one, `quickcheck` was very helpful in assuring me that I was making progress
+  and getting the same results with the clever method.
+- As usual, there's a bunch of search problems. I usually get away with a simple breadth first search or depth first search,
+  but increasingly I find that I do a lot of work to transform my part 2 into an input that will allow me to reuse my part 1
+  code somehow. Perhaps it's about time I make some decent, reusable search implementations, but I really like that the
+  programs are more or less standalone.
+ 
 2020 learning/impressions:
 
 - Compile times were getting long enough to be annoying at this point, but switching the layout of the repo to use
