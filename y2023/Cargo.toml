@@ -13,3 +13,6 @@ itertools = "0.12.0"
 rayon = "1.6"
 fxhash = "0.2"
 nom = "7.1"
+
+[dev-dependencies]
+quickcheck = "1.0.3"

@@ -6,7 +6,7 @@ use nom::combinator::map_res;
 use nom::multi::{many1, separated_list1};
 use nom::sequence::{pair, preceded, separated_pair};
 use nom::IResult;
-use std::collections::VecDeque;
+use rayon::prelude::*;
 use std::str::FromStr;
 
 fn posint(s: &str) -> IResult<&str, i32> {
@@ -55,15 +55,22 @@ pub fn part_1(input: &str) -> Result<String> {
 pub fn part_2(input: &str) -> Result<String> {
     let lines = parse(input)?;
     let scores = score(&lines);
-    let mut work: VecDeque<_> = lines.iter().map(|(cn, _, _)| *cn).collect();
-    let mut scratch_found = 0;
-    while let Some(card) = work.pop_front() {
-        scratch_found += 1;
-        let won = scores[(card - 1) as usize];
-        for next in 1..=won {
-            work.push_back(card + next);
-        }
-    }
+    let work: Vec<_> = lines.iter().map(|(cn, _, _)| *cn).collect();
+    let scratch_found: i32 = work
+        .into_par_iter()
+        .map(|card_no| {
+            let mut work = vec![card_no];
+            let mut won = 0;
+            while let Some(card) = work.pop() {
+                won += 1;
+                let score = scores[(card - 1) as usize];
+                for i in 1..=score {
+                    work.push(card + i);
+                }
+            }
+            won
+        })
+        .sum();
     Ok(scratch_found.to_string())
 }
 

@@ -1623,6 +1623,7 @@ dependencies = [
  "fxhash",
  "itertools",
  "nom",
+ "quickcheck",
  "rayon",
  "regex",
  "shared",
