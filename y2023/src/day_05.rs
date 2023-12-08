@@ -76,12 +76,15 @@ fn parse(s: &str) -> IResult<&str, Task> {
 
 impl Mapping<'_> {
     fn convert_range(&self, mut range: Range<i64>) -> Vec<Range<i64>> {
-        // Assumptions: 1) no converters in a mapping overlap 2) converters are in order of lowest/leftmost source
+        // Assumptions: 1) no converters in a mapping overlap 2) converters are
+        // in order of lowest/leftmost source
         let mut converted = vec![];
         for cv in self.converters.iter() {
             let cv_range = cv.source..cv.source + cv.length;
             let delta = cv.dest - cv.source;
-            let intersect = cv_range.start.max(range.start)..cv_range.end.min(range.end);
+            let start = cv_range.start.max(range.start);
+            let end = cv_range.end.min(range.end);
+            let intersect = start..end;
             if intersect.end > intersect.start {
                 // Nothing can match what's left of `intersect` anymore.
                 if range.start < intersect.start {
