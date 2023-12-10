@@ -68,14 +68,16 @@ fn graph_path(start: Coord2, pipes: &Pipes) -> Vec<Coord2> {
     // we have formed the loop
     let mut path = vec![start, connects_to(start, pipes)[0]];
     let mut place = path.last().copied().unwrap();
+    let mut cache: Set<_> = path.iter().copied().collect();
     while let Some(possible) = pipes
         .get(&place)
         .unwrap_or(&vec![])
         .iter()
-        .find(|n| !path.contains(n))
+        .find(|n| !cache.contains(*n))
     {
         place = *possible;
         path.push(place);
+        cache.insert(place);
     }
     path
 }
