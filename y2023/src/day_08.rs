@@ -40,16 +40,23 @@ fn parse(s: &str) -> IResult<&str, (Vec<Dir>, Vec<Crossroads>)> {
     )(s)?;
     Ok((s, (dirs, roads)))
 }
-fn assemble_map<'a>(roads: &'a [Crossroads]) -> HashMap<&'a str, (&'a str, &'a str)> {
+fn assemble_map(roads: &[Crossroads]) -> HashMap<String, (String, String)> {
     roads
         .iter()
-        .map(|road| (road.at, (road.left, road.right)))
+        .map(|road| {
+            (
+                road.at.to_string(),
+                (road.left.to_string(), road.right.to_string()),
+            )
+        })
         .collect()
 }
 
+type CrossroadsMap = HashMap<String, (String, String)>;
+
 fn solve<'a>(
     mut place: &'a str,
-    map: &HashMap<&'a str, (&'a str, &'a str)>,
+    map: &'a CrossroadsMap,
     dirs: &[Dir],
     end: &dyn Fn(&str) -> bool,
 ) -> Result<usize> {
@@ -57,9 +64,9 @@ fn solve<'a>(
         let dir = dirs[i.rem_euclid(dirs.len())];
         let choices = map.get(place).context(anyhow!("{place}"))?;
         if dir == Dir::L {
-            place = choices.0
+            place = choices.0.as_str()
         } else {
-            place = choices.1
+            place = choices.1.as_str()
         };
 
         if end(place) {
@@ -68,9 +75,15 @@ fn solve<'a>(
     }
     unreachable!()
 }
-pub fn part_1(s: &str) -> Result<String> {
+
+fn prepare(s: &str) -> Result<(CrossroadsMap, Vec<Dir>, Vec<Crossroads>)> {
     let (_, (dirs, roads)) = parse(s).map_err(|err| anyhow!("{err}"))?;
     let map = assemble_map(&roads);
+    Ok((map, dirs, roads))
+}
+
+pub fn part_1(s: &str) -> Result<String> {
+    let (map, dirs, _) = prepare(s)?;
     solve("AAA", &map, &dirs, &|place| place == "ZZZ").map(|n| n.to_string())
 }
 
@@ -82,15 +95,14 @@ fn gcd(mut a: usize, mut b: usize) -> usize {
 }
 
 pub fn part_2(s: &str) -> Result<String> {
-    let (_, (dirs, roads)) = parse(s).map_err(|err| anyhow!("{err}"))?;
-    let map = assemble_map(&roads);
-    let sols: Result<Vec<_>> = roads
+    let (map, dirs, roads) = prepare(s)?;
+    let solutions: Result<Vec<_>> = roads
         .iter()
         .map(|r| r.at)
-        .filter(|r| r.ends_with("A"))
+        .filter(|r| r.ends_with('A'))
         .map(|place| solve(place, &map, &dirs, &|place| place.ends_with('Z')))
         .collect();
-    let n = sols?.iter().copied().fold(1usize, |a, b| {
+    let n = solutions?.iter().copied().fold(1usize, |a, b| {
         let g = gcd(a, b);
         a * b / g
     });
