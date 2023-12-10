@@ -65,23 +65,35 @@ fn connects_to(place: Coord2, pipes: &Pipes) -> Vec<Coord2> {
         .collect()
 }
 
-pub fn part_1(input: &str) -> Result<String> {
-    let (start, pipes) = parse_pipes(input)?;
-
+fn visit_graph(start: Coord2, pipes: &Pipes) -> (Set<Coord2>, i32) {
     let mut visited = Set::default();
     visited.insert(start);
     let mut work = VecDeque::new();
-    work.push_front((0, start));
-    let mut max_distance = 0;
+    for place in connects_to(start, &pipes) {
+        work.push_front((1, place));
+    }
+    let mut max_distance = 1;
 
     while let Some((time, place)) = work.pop_front() {
         max_distance = max_distance.max(time);
-        for next in connects_to(place, &pipes) {
-            if visited.insert(next) {
-                work.push_back((time + 1, next));
+        for next in pipes.get(&place).unwrap_or(&vec![]) {
+            if visited.insert(*next) {
+                work.push_back((time + 1, *next));
             }
         }
     }
 
-    Ok(max_distance.to_string())
+    (visited, max_distance)
+}
+
+pub fn part_1(input: &str) -> Result<String> {
+    let (start, pipes) = parse_pipes(input)?;
+    Ok(visit_graph(start, &pipes).1.to_string())
+}
+
+pub fn part_2(input: &str) -> Result<String> {
+    let (start, pipes) = parse_pipes(input)?;
+    let (the_loop, _) = visit_graph(start, &pipes);
+
+    Ok("Not implemented yet".to_string())
 }
