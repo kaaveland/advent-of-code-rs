@@ -2,7 +2,6 @@ use anyhow::{Context, Result};
 use fxhash::FxHashMap as HashMap;
 use fxhash::FxHashSet as Set;
 use itertools::Itertools;
-use std::collections::VecDeque;
 
 type Coord2 = [i32; 2];
 const NORTH: Coord2 = [0, -1];
@@ -25,15 +24,7 @@ fn add_coords(lhs: Coord2, rhs: Coord2) -> Coord2 {
 }
 
 fn parse_pipes(input: &str) -> Result<(Coord2, Pipes)> {
-    let places_char = input
-        .lines()
-        .filter(|line| !line.is_empty())
-        .enumerate()
-        .flat_map(|(y, line)| {
-            line.chars()
-                .enumerate()
-                .map(move |(x, ch)| ([x as i32, y as i32], ch))
-        })
+    let places_char = map_iterator(input)
         .filter(|(_, ch)| *ch != '.')
         .collect_vec();
 
@@ -66,34 +57,64 @@ fn connects_to(place: Coord2, pipes: &Pipes) -> Vec<Coord2> {
 }
 
 fn visit_graph(start: Coord2, pipes: &Pipes) -> (Set<Coord2>, i32) {
-    let mut visited = Set::default();
-    visited.insert(start);
-    let mut work = VecDeque::new();
-    for place in connects_to(start, &pipes) {
-        work.push_front((1, place));
-    }
-    let mut max_distance = 1;
-
-    while let Some((time, place)) = work.pop_front() {
-        max_distance = max_distance.max(time);
-        for next in pipes.get(&place).unwrap_or(&vec![]) {
-            if visited.insert(*next) {
-                work.push_back((time + 1, *next));
-            }
-        }
-    }
-
-    (visited, max_distance)
+    let path = graph_path(start, pipes);
+    let path_len = path.len();
+    (path.into_iter().collect(), (path_len / 2) as i32)
 }
 
+fn graph_path(start: Coord2, pipes: &Pipes) -> Vec<Coord2> {
+    // We have a nice invariant; since all the pipes have 2 connections, we know that we can always
+    // add one of the connections that isn't already in `path`, until we can't anymore, at which time
+    // we have formed the loop
+    let mut path = vec![start, connects_to(start, pipes)[0]];
+    let mut place = path.last().copied().unwrap();
+    while let Some(possible) = pipes
+        .get(&place)
+        .unwrap_or(&vec![])
+        .iter()
+        .find(|n| !path.contains(n))
+    {
+        place = *possible;
+        path.push(place);
+    }
+    path
+}
+
+fn map_iterator(input: &str) -> impl Iterator<Item = (Coord2, char)> + '_ {
+    input
+        .lines()
+        .filter(|line| !line.is_empty())
+        .enumerate()
+        .flat_map(|(y, line)| {
+            line.chars()
+                .enumerate()
+                .map(move |(x, ch)| ([x as i32, y as i32], ch))
+        })
+}
 pub fn part_1(input: &str) -> Result<String> {
     let (start, pipes) = parse_pipes(input)?;
     Ok(visit_graph(start, &pipes).1.to_string())
 }
 
+fn shoelace_area(polygon: &[Coord2]) -> i32 {
+    let mut s1 = 0;
+    let mut s2 = 0;
+
+    for i in 0..polygon.len() {
+        let next = (i + 1) % polygon.len();
+
+        s1 += polygon[i][0] * polygon[next][1];
+        s2 += polygon[i][1] * polygon[next][0];
+    }
+
+    (s2 - s1).abs() / 2
+}
+
 pub fn part_2(input: &str) -> Result<String> {
     let (start, pipes) = parse_pipes(input)?;
-    let (the_loop, _) = visit_graph(start, &pipes);
-
-    Ok("Not implemented yet".to_string())
+    // In order vertices of the path
+    let the_loop = graph_path(start, &pipes);
+    let area_including_loop = shoelace_area(&the_loop);
+    let interior_points_by_picks_theorem = area_including_loop - ((the_loop.len() / 2) as i32 - 1);
+    Ok(interior_points_by_picks_theorem.to_string())
 }
