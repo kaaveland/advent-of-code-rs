@@ -20,22 +20,23 @@ fn intlist(s: &str) -> IResult<&str, Vec<i32>> {
 fn card(s: &str) -> IResult<&str, i32> {
     preceded(preceded(tag("Card"), space1), posint)(s)
 }
+type CardLine = (i32, Vec<i32>, Vec<i32>);
 
-fn parse_card_line(s: &str) -> IResult<&str, (i32, Vec<i32>, Vec<i32>)> {
+fn parse_card_line(s: &str) -> IResult<&str, CardLine> {
     let intlists = separated_pair(intlist, separated_pair(space1, tag("|"), space1), intlist);
     let (s, (card, (n1, n2))) = separated_pair(card, pair(tag(":"), space1), intlists)(s)?;
     Ok((s, (card, n1, n2)))
 }
 
-fn parse(input: &str) -> Result<Vec<(i32, Vec<i32>, Vec<i32>)>> {
+fn parse(input: &str) -> Result<Vec<CardLine>> {
     let (_, lines) =
         separated_list1(tag("\n"), parse_card_line)(input).map_err(|err| anyhow!("{err}"))?;
     Ok(lines)
 }
 
-fn score(cards: &Vec<(i32, Vec<i32>, Vec<i32>)>) -> Vec<i32> {
+fn score(cards: &[CardLine]) -> Vec<i32> {
     cards
-        .into_iter()
+        .iter()
         .map(|(_, n1, n2)| {
             let winning: HashSet<_> = n1.iter().collect();
             let have: HashSet<_> = n2.iter().collect();

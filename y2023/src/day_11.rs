@@ -1,16 +1,16 @@
 use anyhow::Result;
 use fxhash::FxHashSet as Set;
+use shared::grid_parser;
+
 type Coord2 = [i64; 2];
 
 fn parse_galaxies(input: &str) -> Vec<Coord2> {
-    input
-        .lines()
-        .filter(|line| !line.is_empty())
-        .enumerate()
-        .flat_map(|(y, line)| line.chars().enumerate().map(move |(x, ch)| (x, y, ch)))
-        .filter(|(_, _, ch)| *ch == '#')
-        .map(|(x, y, _)| [x as i64, y as i64])
-        .collect()
+    grid_parser(input, &|ch: char| match ch {
+        '#' => Some('#'),
+        _ => None,
+    })
+    .map(|((x, y), _)| [x, y])
+    .collect()
 }
 
 fn upper_bounds(galaxies: &[Coord2]) -> Coord2 {
