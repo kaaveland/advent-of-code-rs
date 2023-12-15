@@ -14,6 +14,12 @@ resolver = "2"
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
+authors = ["Robin Kåveland"]
+description = "Advent of Code solutions in Rust"
+license = "MIT"
+license-file = "LICENSE.txt"
+readme = "README.md"
+repository = "https://github.com/kaaveland/advent-of-code-rs"
 
 [workspace.dependencies]
 anyhow = "1.0.73"
