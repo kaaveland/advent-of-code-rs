@@ -1,16 +1,15 @@
 [package]
 name = "aoc"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-anyhow = "1"
-regex = "1"
-itertools = "0.12.0"
-rayon = "1.6"
-fxhash = "0.2"
+anyhow.workspace = true
+regex.workspace = true
+itertools.workspace = true
+rayon.workspace = true
+fxhash.workspace = true
+reqwest.workspace = true
 shared = { path = "../shared" }
 y2018 = { path = "../y2018" }
 y2019 = { path = "../y2019" }
@@ -22,7 +21,3 @@ dirs = "5.0.1"
 
 [dependencies.clap]
 version = "4"
-
-[dependencies.reqwest]
-features = ["blocking"]
-version = "0.11"
