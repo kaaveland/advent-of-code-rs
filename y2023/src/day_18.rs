@@ -126,18 +126,18 @@ fn circumference(polygon: &Polygon) -> i64 {
         .sum()
 }
 
-fn area_of_polygon(s: &str, use_hex: bool) -> Result<i64> {
+fn cubic_meters_of_lava(s: &str, use_hex: bool) -> Result<i64> {
     let i = parse_instructions(s)?;
     let p = draw_polygon(&i, use_hex);
     Ok(inner_by_picks_theorem(&p) + circumference(&p))
 }
 
 pub fn part_1(input: &str) -> Result<String> {
-    Ok(area_of_polygon(input, false)?.to_string())
+    Ok(cubic_meters_of_lava(input, false)?.to_string())
 }
 
 pub fn part_2(input: &str) -> Result<String> {
-    Ok(area_of_polygon(input, true)?.to_string())
+    Ok(cubic_meters_of_lava(input, true)?.to_string())
 }
 
 #[cfg(test)]
@@ -173,7 +173,7 @@ U 2 (#7a21e3)
 
     #[test]
     fn test_ex() {
-        assert_eq!(area_of_polygon(EX, false).unwrap(), 62);
-        assert_eq!(area_of_polygon(EX, true).unwrap(), 952408144115);
+        assert_eq!(cubic_meters_of_lava(EX, false).unwrap(), 62);
+        assert_eq!(cubic_meters_of_lava(EX, true).unwrap(), 952408144115);
     }
 }
