@@ -171,10 +171,11 @@ mod tests {
     fn test_p2() {
         let g = VecGrid::new(EX);
         let s = find_start(&g).unwrap();
-        let v = walk_garden(&g, s, 101);
+        let v = walk_garden(&g, s, 501);
         assert_eq!(v[6], 16);
         assert_eq!(v[10], 50);
         assert_eq!(v[50], 1594);
         assert_eq!(v[100], 6536);
+        assert_eq!(v[500], 167004);
     }
 }
