@@ -167,8 +167,8 @@ fn find_period(s: &str, node: &str, high: bool) -> Result<i64> {
     let mut sim = to_sim(s)?;
     (1..)
         .find(|_: &i64| {
-            let (_, _, rx) = simulate(&mut sim, node, high);
-            rx > 0
+            let (_, _, observed_node) = simulate(&mut sim, node, high);
+            observed_node > 0
         })
         .context("Unable to find")
 }
