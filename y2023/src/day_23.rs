@@ -142,29 +142,20 @@ fn bfs(grid: &VecGrid, start: (i32, i32), junctions: &Map<(i32, i32), usize>) ->
     distances
 }
 
-fn make_graph(grid: &VecGrid) -> Vec<Vec<usize>> {
+fn make_graph(grid: &VecGrid) -> Vec<Vec<(usize, usize)>> {
     let junctions = find_junctions(grid);
-    let mut graph = vec![vec![0; junctions.len() + 1]; junctions.len() + 1];
+    let mut graph = vec![vec![]; junctions.len() + 1];
     for (source, source_name) in junctions.iter() {
         for (dest_name, distance) in bfs(grid, *source, &junctions) {
-            graph[*source_name][dest_name] = distance;
-            graph[dest_name][*source_name] = distance;
+            graph[*source_name].push((dest_name, distance));
         }
     }
     graph
 }
-
-fn longest_path_using_graph(graph: &[Vec<usize>]) -> Option<usize> {
+fn longest_path_using_graph(graph: &[Vec<(usize, usize)>]) -> usize {
     let start = 1usize;
     let end = graph.len() - 1;
-    fn isset(idx: usize, bitset: usize) -> bool {
-        (1 << idx) & bitset == (1 << idx)
-    }
-    fn setbit(idx: usize, bitset: usize) -> usize {
-        bitset | (1 << idx)
-    }
-    let visited = setbit(1, 0);
-    let mut work = vec![(start, visited, 0)];
+    let mut work = vec![(start, 1usize, 0)];
     let mut max_dist = 0;
     while let Some((loc, visited, len)) = work.pop() {
         if loc == end {
@@ -173,13 +164,12 @@ fn longest_path_using_graph(graph: &[Vec<usize>]) -> Option<usize> {
             work.extend(
                 graph[loc]
                     .iter()
-                    .enumerate()
-                    .filter(|(next, &dist)| dist != 0 && !isset(*next, visited))
-                    .map(|(dest, dist)| (dest, setbit(dest, visited), len + *dist)),
+                    .filter(|(next, dist)| *dist != 0 && (1 << next) & visited != (1 << next))
+                    .map(|(dest, dist)| (*dest, visited | (1 << dest), len + *dist)),
             );
         }
     }
-    Some(max_dist)
+    max_dist
 }
 
 fn longest_path(grid: &VecGrid) -> Option<usize> {
@@ -222,9 +212,7 @@ pub fn part_1(s: &str) -> Result<String> {
 pub fn part_2(s: &str) -> Result<String> {
     let v = VecGrid::new(s, false);
     let map = make_graph(&v);
-    longest_path_using_graph(&map)
-        .context("No path")
-        .map(|n| n.to_string())
+    Ok(longest_path_using_graph(&map).to_string())
 }
 
 #[cfg(test)]
