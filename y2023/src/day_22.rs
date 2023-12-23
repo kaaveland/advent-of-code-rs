@@ -110,7 +110,7 @@ fn settle(bricks: &mut Vec<Brick>) {
                 moved_any = moved_any || work != before;
                 bricks.push(work);
             }
-            bricks.swap(j, j);
+            bricks.swap(j, i);
         }
         if !moved_any {
             break;
