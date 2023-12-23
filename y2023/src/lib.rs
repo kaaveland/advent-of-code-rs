@@ -20,6 +20,7 @@ mod day_19;
 mod day_20;
 mod day_21;
 mod day_22;
+mod day_23;
 
 use shared::{not_implemented, Solution};
 pub const SOLUTIONS: [Solution; 25] = [
@@ -135,8 +136,8 @@ pub const SOLUTIONS: [Solution; 25] = [
     },
     Solution {
         day_no: 23,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_23::part_1,
+        part_2: day_23::part_2,
     },
     Solution {
         day_no: 24,
