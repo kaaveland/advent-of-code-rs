@@ -1,8 +1,8 @@
 Advent of Code solutions in Rust
 ==
 
-My solutions for Advent of Code puzzles in Rust, created in 2022/2023. These have been solved
-in reverse chronological starting in December 2022. I used these puzzles to learn to program Rust.
+My solutions for Advent of Code puzzles in Rust, created in 2022/2023.
+I used these puzzles to learn to program Rust.
 
 There's a small command line utility to run the programs and download data from advent of code. Most
 of the programs are self-contained, there's very little shared code so that it should be relatively
@@ -10,12 +10,14 @@ easy to take out some code and run independently.
 
 For year 2022, the focus was mostly to get familiar with Rust and the stdlib. There's a variety of
 error handling, from none at all to matching against `Option`s or `Result`s to using the `?` operator
-with `anyhow::Result`. For year 2021 and earlier, I wanted to write code that performs well.
+with `anyhow::Result`.
 
 Progress
 ==
 
-- 2023: WIP
+These runtimes are for all the puzzles in each year, ran with `hyperfine -N --warmup 20`.
+
+- 2023: ✅ Time (mean ± σ):     245.5 ms ±   9.5 ms
 - 2022: ✅ Time (mean ± σ):     177.2 ms ±   4.0 ms
 - 2021: ✅ Time (mean ± σ):     101.0 ms ±   2.8 ms
 - 2020: ✅ Time (mean ± σ):     601.8 ms ±  10.7 ms
@@ -45,7 +47,8 @@ Options:
 ```
 
 If you want to actually use this, you probably want to first run `target/release/aoc data` to
-get a copy of your datasets locally. The output from `runall` looks something like this (these are my answers for 2021):
+get a copy of your datasets locally. The output from `runall` looks something like this
+(these are my answers for 2021):
 
 ```shell
 $ target/release/aoc runall 2021
