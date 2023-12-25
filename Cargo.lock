@@ -607,6 +607,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f518f335dce6725a761382244631d86cf0ccb2863413590b31338feb467f9c3"
 
 [[package]]
+name = "is_close"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4d49e01f14871e71a0dce6f09eb72308bca74a4adb1bab5a8c34ee26979a8a2"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "itertools"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1682,6 +1691,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "fxhash",
+ "is_close",
  "itertools",
  "nom",
  "once_cell",

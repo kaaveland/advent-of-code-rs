@@ -12,6 +12,7 @@ fxhash.workspace = true
 nom.workspace = true
 once_cell.workspace = true
 anyhow.workspace = true
+is_close = "0.1.3"
 
 [dev-dependencies]
 quickcheck.workspace = true
