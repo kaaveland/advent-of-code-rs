@@ -17,6 +17,7 @@ y2020 = { path = "../y2020" }
 y2021 = { path = "../y2021" }
 y2022 = { path = "../y2022" }
 y2023 = { path = "../y2023" }
+y2024 = { path = "../y2024" }
 dirs = "5.0.1"
 
 [dependencies.clap]
