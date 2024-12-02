@@ -42,7 +42,6 @@ struct Beam {
 
 trait Grid {
     fn at(&self, x: i32, y: i32) -> Option<Tile>;
-    fn set(&mut self, x: i32, y: i32, tile: Tile);
 }
 
 #[derive(Eq, PartialEq, Debug, Clone)]
@@ -84,13 +83,6 @@ impl Grid for VecGrid {
         } else {
             None
         }
-    }
-    fn set(&mut self, x: i32, y: i32, tile: Tile) {
-        assert!(
-            (0..self.width).contains(&x) && (0..self.height).contains(&y),
-            "{x}, {y} out of bounds"
-        );
-        self.tiles[(x + self.width * y) as usize] = tile;
     }
 }
 

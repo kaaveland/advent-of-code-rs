@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use fxhash::{FxHashMap as Map, FxHashSet as Set};
-use itertools::Itertools;
-use rand::{thread_rng, Rng};
+use itertools::Itertools;use rand::{thread_rng, Rng};
 use std::cmp::Reverse;
 use std::collections::VecDeque;
 
@@ -79,7 +78,7 @@ fn reachable_vertices<'a>(graph: &Graph, start: &str) -> usize {
 
 pub fn part_1(s: &str) -> Result<String> {
     let graph = parse_graph(s).context("Unparseable graph")?;
-    let stats = shortest_path_stats(&graph, 100)
+    let stats = shortest_path_stats(&graph, 200)
         .into_iter()
         .sorted_by_key(|(_, usage_count)| Reverse(*usage_count))
         .map(|(vtx, _)| vtx)
