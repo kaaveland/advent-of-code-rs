@@ -220,7 +220,7 @@ impl WorkflowRule {
     }
 }
 
-impl<'a> Workflow<'a> {
+impl Workflow<'_> {
     fn apply_to(&self, part: &Part) -> Option<Destination> {
         for workflow_rule in self.rules.iter() {
             if workflow_rule.rule.applies_to(part) {

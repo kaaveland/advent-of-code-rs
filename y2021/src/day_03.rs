@@ -2,34 +2,6 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use std::cmp::Ordering;
 
-#[cfg(test)]
-pub mod tests {
-    use super::*;
-    const EXAMPLE: &str = "00100
-11110
-10110
-10111
-10101
-01111
-00111
-11100
-10000
-11001
-00010
-01010
-";
-
-    #[test]
-    fn test_solve_1() {
-        assert_eq!(solve_1(EXAMPLE).unwrap(), 198);
-    }
-
-    #[test]
-    fn test_solve_2() {
-        assert_eq!(solve_2(EXAMPLE).unwrap(), 230);
-    }
-}
-
 fn bitcounts(input: &str) -> Result<(Vec<i32>, Vec<i32>)> {
     let digits = input.lines().next().map(|l| l.len()).unwrap_or(0);
 
@@ -124,4 +96,32 @@ fn solve_2(input: &str) -> Result<i64> {
 pub fn part_2(input: &str) -> Result<String> {
     let r = solve_2(input)?;
     Ok(format!("{r}"))
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    const EXAMPLE: &str = "00100
+11110
+10110
+10111
+10101
+01111
+00111
+11100
+10000
+11001
+00010
+01010
+";
+
+    #[test]
+    fn test_solve_1() {
+        assert_eq!(solve_1(EXAMPLE).unwrap(), 198);
+    }
+
+    #[test]
+    fn test_solve_2() {
+        assert_eq!(solve_2(EXAMPLE).unwrap(), 230);
+    }
 }

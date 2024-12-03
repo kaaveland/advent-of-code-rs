@@ -80,7 +80,7 @@ fn filter_moves(source: usize, moves: &[usize], landscape: &[u8]) -> Vec<usize> 
 fn bfs<F>(
     source: usize,
     is_dest: F,
-    landscape: &Vec<u8>,
+    landscape: &[u8],
     width: usize,
     height: usize,
 ) -> Option<usize>

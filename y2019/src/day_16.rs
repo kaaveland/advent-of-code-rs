@@ -14,7 +14,7 @@ fn pattern(repeats: usize) -> impl Iterator<Item = i32> {
     base.skip(1)
 }
 
-fn apply_fft(inputs: &Vec<i32>) -> Vec<i32> {
+fn apply_fft(inputs: &[i32]) -> Vec<i32> {
     (1..=inputs.len())
         .into_par_iter()
         .map(pattern)

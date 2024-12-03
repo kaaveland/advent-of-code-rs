@@ -280,7 +280,7 @@ fn parse_lines(input: &str) -> Result<Vec<Line>> {
         .collect()
 }
 
-fn points_intersection(lines: &Vec<Line>) -> HashSet<(i32, i32)> {
+fn points_intersection(lines: &[Line]) -> HashSet<(i32, i32)> {
     let mut pointset = HashSet::default();
     for i in 0..lines.len() {
         for j in (i + 1)..lines.len() {

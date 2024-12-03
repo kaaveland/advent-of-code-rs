@@ -47,6 +47,7 @@ impl Hash for Float64 {
 }
 
 impl PartialOrd<Self> for Float64 {
+    #[allow(clippy::non_canonical_partial_ord_impl)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let Float64(lhs) = self;
         let Float64(rhs) = other;

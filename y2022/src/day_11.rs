@@ -107,7 +107,7 @@ fn do_monkey_turn(
     }
 }
 
-fn do_monkey_round(monkeys: &mut Vec<Monkey>, counter: &mut HashMap<usize, usize>, modulo: bool) {
+fn do_monkey_round(monkeys: &mut [Monkey], counter: &mut HashMap<usize, usize>, modulo: bool) {
     for monkey_id in 0..monkeys.len() {
         do_monkey_turn(monkey_id, monkeys, counter, modulo);
     }

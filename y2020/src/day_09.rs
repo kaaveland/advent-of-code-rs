@@ -5,7 +5,7 @@ fn parse(input: &str) -> Vec<u64> {
     input.lines().filter_map(|line| line.parse().ok()).collect()
 }
 
-fn xmas(input: &Vec<u64>, preamble: usize) -> Option<u64> {
+fn xmas(input: &[u64], preamble: usize) -> Option<u64> {
     for i in preamble..input.len() - preamble {
         let pre = &input[i - preamble..i];
         let mut sums = pre
@@ -27,7 +27,7 @@ pub fn part_1(input: &str) -> Result<String> {
         .map(|n| format!("{n}"))
 }
 
-fn sum_spans(input: &Vec<u64>, target: u64, nums: usize) -> Option<u64> {
+fn sum_spans(input: &[u64], target: u64, nums: usize) -> Option<u64> {
     (0..input.len() - nums)
         .map(|i| &input[i..i + nums])
         .filter(|v| v.iter().sum::<u64>() == target)
@@ -39,7 +39,7 @@ fn sum_spans(input: &Vec<u64>, target: u64, nums: usize) -> Option<u64> {
         .next()
 }
 
-fn find_weakness(input: &Vec<u64>, preamble: usize) -> Option<u64> {
+fn find_weakness(input: &[u64], preamble: usize) -> Option<u64> {
     let target = xmas(input, preamble)?;
     (2..input.len())
         .filter_map(|n| sum_spans(input, target, n))

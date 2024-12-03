@@ -59,7 +59,7 @@ fn parse(inp: &str) -> Result<Problem> {
     })
 }
 
-fn shortest_paths(edges: &[Vec<usize>], flow_rate: &Vec<u32>) -> Vec<Vec<u32>> {
+fn shortest_paths(edges: &[Vec<usize>], flow_rate: &[u32]) -> Vec<Vec<u32>> {
     let mut out = Vec::new();
     let mut queue: VecDeque<(u32, usize)> = VecDeque::new();
     for vtx in 0..flow_rate.len() {

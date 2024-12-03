@@ -2,41 +2,6 @@ use anyhow::Result;
 use itertools::Itertools;
 use std::num::ParseIntError;
 
-#[cfg(test)]
-pub mod tests {
-    use super::*;
-    const EXAMPLE: &str = "199
-200
-208
-210
-200
-207
-240
-269
-260
-263
-";
-
-    #[test]
-    fn test_parse() {
-        let depths = parse(EXAMPLE).unwrap();
-        assert_eq!(depths[0], 199);
-        assert_eq!(depths[1], 200);
-    }
-
-    #[test]
-    fn test_solve_1() {
-        let depths = parse(EXAMPLE).unwrap();
-        assert_eq!(solve_1(&depths), 7);
-    }
-
-    #[test]
-    fn test_solve_2() {
-        let depths = parse(EXAMPLE).unwrap();
-        assert_eq!(solve_2(&depths), 5);
-    }
-}
-
 fn parse(input: &str) -> Result<Vec<i32>> {
     let r: Result<Vec<_>, ParseIntError> = input
         .lines()
@@ -79,4 +44,39 @@ pub fn part_2(input: &str) -> Result<String> {
     let depths = parse(input)?;
     let sol = solve_2(&depths);
     Ok(format!("{sol}"))
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    const EXAMPLE: &str = "199
+200
+208
+210
+200
+207
+240
+269
+260
+263
+";
+
+    #[test]
+    fn test_parse() {
+        let depths = parse(EXAMPLE).unwrap();
+        assert_eq!(depths[0], 199);
+        assert_eq!(depths[1], 200);
+    }
+
+    #[test]
+    fn test_solve_1() {
+        let depths = parse(EXAMPLE).unwrap();
+        assert_eq!(solve_1(&depths), 7);
+    }
+
+    #[test]
+    fn test_solve_2() {
+        let depths = parse(EXAMPLE).unwrap();
+        assert_eq!(solve_2(&depths), 5);
+    }
 }
