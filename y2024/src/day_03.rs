@@ -1,23 +1,17 @@
 use regex::Regex;
 
 fn sum_muls(input: &str) -> anyhow::Result<(i32, i32)> {
-    let mut mul = true;
-    let mut p1 = 0;
-    let mut p2 = 0;
     let mul_re = Regex::new(r#"(mul\((\d+),(\d+)\))|(do\(\))|(don't\(\))"#)?;
-    for m in mul_re.captures_iter(input) {
-        if let Some((l, r)) = m.get(2).and_then(|l| m.get(3).map(|r| (l, r))) {
-            let g = l.as_str().parse::<i32>()? * r.as_str().parse::<i32>()?;
-            p1 += g;
-            if mul {
-                p2 += g;
+    let r: anyhow::Result<_> = mul_re.captures_iter(input).try_fold(
+        (0, 0, true), |(p1, p2, enabled), m| {
+            if let (Some(l), Some(r)) = (m.get(2), m.get(3)) {
+                let mul = l.as_str().parse::<i32>()? * r.as_str().parse::<i32>()?;
+                Ok((p1 + mul, if enabled { p2 + mul } else { p2 }, enabled))
+            } else {
+                Ok((p1, p2, m.get(4).is_some()))
             }
-        } else if m.get(4).is_some() {
-            mul = true;
-        } else if m.get(5).is_some() {
-            mul = false;
-        }
-    }
+    });
+    let (p1, p2, _) = r?;
     Ok((p1, p2))
 }
 
@@ -36,6 +30,7 @@ mod tests {
     use super::*;
 
     const EXAMPLE: &str = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+    
     #[test]
     fn test_example() {
         assert_eq!(sum_muls(EXAMPLE).unwrap(), (161, 48));

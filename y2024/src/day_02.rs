@@ -1,4 +1,4 @@
-use std::num::{ParseIntError};
+use std::num::ParseIntError;
 use fxhash::FxHashSet;
 use itertools::Itertools;
 
@@ -23,25 +23,23 @@ fn safe(report: &[i32]) -> bool {
 }
 
 fn safe_with_one_drop(report: &[i32]) -> bool {
-    report.iter().combinations(report.len() - 1).any(|r| safe(&r.into_iter().copied().collect_vec()))
-}
-
-fn count_reports<F>(reports: &[&[i32]], predicate: F) -> usize
-where F: Fn(&[i32]) -> bool {
-    reports.iter().copied().filter(|n| predicate(n)).count()
+    (0..report.len()).any(|drop| {
+        let subreport: Vec<_> = report.iter().enumerate()
+            .filter_map(|(i,value)| if i != drop { Some(*value) } else { None })
+            .collect();
+        safe(&subreport)
+    })
 }
 
 pub fn part_1(input: &str) -> anyhow::Result<String> {
     let reports = parse(input)?;
-    let slices = reports.iter().map(|r| r.as_slice()).collect_vec();
-    let n = count_reports(&slices, safe);
+    let n = reports.iter().filter(|report| safe(report)).count();
     Ok(format!("{n}"))
 }
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let reports = parse(input)?;
-    let slices = reports.iter().map(|r| r.as_slice()).collect_vec();
-    let n = count_reports(&slices, safe_with_one_drop);
+    let n = reports.iter().filter(|report| safe_with_one_drop(report)).count();
     Ok(format!("{n}"))
 }
 
@@ -59,10 +57,8 @@ mod tests {
 
     #[test]
     fn test_safe_reports() {
-        let reports = parse(EXAMPLE).unwrap();
-        let slices: Vec<_> = reports.iter().map(|r|r.as_slice()).collect();
-        assert_eq!(count_reports(&slices, safe), 2);
-        assert_eq!(count_reports(&slices, safe_with_one_drop), 4);
+        assert_eq!(part_1(EXAMPLE).unwrap().as_str(), "2");
+        assert_eq!(part_2(EXAMPLE).unwrap().as_str(), "4");
     }
 
 }
