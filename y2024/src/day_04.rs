@@ -1,14 +1,22 @@
 use itertools::Itertools;
 
 fn parse_grid(input: &str) -> Vec<Vec<u8>> {
-    input.lines().filter(|l| !l.is_empty()).map(|line|
-        line.trim().as_bytes().to_vec()
-    ).collect()
+    input
+        .lines()
+        .filter(|l| !l.is_empty())
+        .map(|line| line.trim().as_bytes().to_vec())
+        .collect()
 }
 
 const DIRS: [[i32; 2]; 8] = [
-    [0, 1], [0, -1], [1, 0], [-1, 0],
-    [1, 1], [-1, -1], [1, -1], [-1, 1]
+    [0, 1],
+    [0, -1],
+    [1, 0],
+    [-1, 0],
+    [1, 1],
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
 ];
 
 fn count_xmas(grid: &[Vec<u8>]) -> usize {
@@ -42,11 +50,11 @@ fn count_mas(grid: &[Vec<u8>]) -> usize {
         let mut left = [0; 3];
         let mut right = [0; 3];
         for i in 0..3 {
-            let (xp, yp) = (x + i, y + i) ;
+            let (xp, yp) = (x + i, y + i);
             if (0..w).contains(&xp) && (0..h).contains(&yp) {
                 right[i as usize] = grid[yp as usize][xp as usize];
             }
-            let (xp, yp) = (x + 2 - i, y + i) ;
+            let (xp, yp) = (x + 2 - i, y + i);
             if (0..w).contains(&xp) && (0..h).contains(&yp) {
                 left[i as usize] = grid[yp as usize][xp as usize];
             }

@@ -1,13 +1,17 @@
-use std::num::ParseIntError;
 use fxhash::FxHashSet;
 use itertools::Itertools;
+use std::num::ParseIntError;
 
 fn parse_line(input: &str) -> Result<Vec<i32>, ParseIntError> {
-    input.split_whitespace().map(|n|n.parse::<i32>()).collect()
+    input.split_whitespace().map(|n| n.parse::<i32>()).collect()
 }
 
 fn parse(input: &str) -> Result<Vec<Vec<i32>>, ParseIntError> {
-    input.lines().filter(|n|!n.is_empty()).map(parse_line).collect()
+    input
+        .lines()
+        .filter(|n| !n.is_empty())
+        .map(parse_line)
+        .collect()
 }
 
 fn signum(n: i32) -> i32 {
@@ -24,8 +28,10 @@ fn safe(report: &[i32]) -> bool {
 
 fn safe_with_one_drop(report: &[i32]) -> bool {
     (0..report.len()).any(|drop| {
-        let subreport: Vec<_> = report.iter().enumerate()
-            .filter_map(|(i,value)| if i != drop { Some(*value) } else { None })
+        let subreport: Vec<_> = report
+            .iter()
+            .enumerate()
+            .filter_map(|(i, value)| if i != drop { Some(*value) } else { None })
             .collect();
         safe(&subreport)
     })
@@ -39,7 +45,10 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let reports = parse(input)?;
-    let n = reports.iter().filter(|report| safe_with_one_drop(report)).count();
+    let n = reports
+        .iter()
+        .filter(|report| safe_with_one_drop(report))
+        .count();
     Ok(format!("{n}"))
 }
 
@@ -60,5 +69,4 @@ mod tests {
         assert_eq!(part_1(EXAMPLE).unwrap().as_str(), "2");
         assert_eq!(part_2(EXAMPLE).unwrap().as_str(), "4");
     }
-
 }
