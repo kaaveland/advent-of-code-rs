@@ -30,9 +30,7 @@ fn digits_of(mut n: i32) -> [u8; 6] {
 }
 
 pub fn part_1(input: &str) -> Result<String> {
-    let n = candidates(input)?
-        .filter(|n| validate(*n))
-        .count();
+    let n = candidates(input)?.filter(|n| validate(*n)).count();
     Ok(format!("{n}"))
 }
 
@@ -57,9 +55,7 @@ fn validate_part_2(n: i32) -> bool {
 }
 
 pub fn part_2(input: &str) -> Result<String> {
-    let n = candidates(input)?
-        .filter(|n| validate_part_2(*n))
-        .count();
+    let n = candidates(input)?.filter(|n| validate_part_2(*n)).count();
     Ok(format!("{n}"))
 }
 

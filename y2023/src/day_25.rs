@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use fxhash::{FxHashMap as Map, FxHashSet as Set};
-use itertools::Itertools;use rand::{thread_rng, Rng};
+use itertools::Itertools;
+use rand::{thread_rng, Rng};
 use std::cmp::Reverse;
 use std::collections::VecDeque;
 

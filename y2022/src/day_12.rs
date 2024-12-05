@@ -77,13 +77,7 @@ fn filter_moves(source: usize, moves: &[usize], landscape: &[u8]) -> Vec<usize> 
     moves.iter().filter(can_go).cloned().collect()
 }
 
-fn bfs<F>(
-    source: usize,
-    is_dest: F,
-    landscape: &[u8],
-    width: usize,
-    height: usize,
-) -> Option<usize>
+fn bfs<F>(source: usize, is_dest: F, landscape: &[u8], width: usize, height: usize) -> Option<usize>
 where
     F: Fn(usize) -> bool,
 {

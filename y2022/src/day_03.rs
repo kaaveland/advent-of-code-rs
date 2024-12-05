@@ -40,8 +40,7 @@ pub fn part_2(input: &str) -> Result<String> {
     let items: Vec<char> = groups
         .filter_map(|group| {
             let ((one, two), three) = group;
-            one.chars()
-                .find(|c| two.contains(*c) && three.contains(*c))
+            one.chars().find(|c| two.contains(*c) && three.contains(*c))
         })
         .collect();
 
