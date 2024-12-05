@@ -301,7 +301,7 @@ fn points_intersection(lines: &[Line]) -> HashSet<(i32, i32)> {
     pointset
 }
 
-fn solve(lines: &Vec<Line>) -> usize {
+fn solve(lines: &[Line]) -> usize {
     let ps = points_intersection(lines);
     ps.len()
 }

@@ -62,7 +62,7 @@ fn shortest_path_stats<'a>(graph: &'a Graph, simulations: u32) -> Map<(&'a str, 
     counters
 }
 
-fn reachable_vertices<'a>(graph: &Graph, start: &str) -> usize {
+fn reachable_vertices(graph: &Graph, start: &str) -> usize {
     let mut cache = Set::default();
     let mut work = VecDeque::new();
     work.push_back(start);
