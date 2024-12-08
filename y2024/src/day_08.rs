@@ -29,6 +29,13 @@ impl Grid {
     fn contains(&self, point: &(i32, i32)) -> bool {
         (0..self.width).contains(&point.0) && (0..self.height).contains(&point.1)
     }
+    fn pairs(&self) -> impl Iterator<Item = ((i32, i32), (i32, i32))> + '_ {
+        self.groups.values().flat_map(|g| {
+            g.iter()
+                .enumerate()
+                .flat_map(move |(i, a)| g.iter().skip(i + 1).map(move |b| (*a, *b)))
+        })
+    }
 }
 
 fn gen_antinodes(
@@ -65,17 +72,10 @@ fn p2_antinodes(
     gen_antinodes(a_1, a_2, grid, -1).chain(gen_antinodes(a_1, a_2, grid, 1))
 }
 
-fn group_combinations(group: &[(i32, i32)]) -> impl Iterator<Item = ((i32, i32), (i32, i32))> + '_ {
-    group
-        .iter()
-        .enumerate()
-        .flat_map(move |(i, a)| group.iter().skip(i + 1).map(move |b| (*a, *b)))
-}
-
 pub fn part_1(input: &str) -> anyhow::Result<String> {
     let grid = Grid::parse(input);
-    let pairs = grid.groups.values().flat_map(|g| group_combinations(g));
-    let antinodes: FxHashSet<_> = pairs
+    let antinodes: FxHashSet<_> = grid
+        .pairs()
         .flat_map(|(a, b)| p1_antinodes(a, b, &grid))
         .collect();
     Ok(format!("{}", antinodes.len()))
@@ -83,8 +83,8 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let grid = Grid::parse(input);
-    let pairs = grid.groups.values().flat_map(|g| group_combinations(g));
-    let antinodes: FxHashSet<_> = pairs
+    let antinodes: FxHashSet<_> = grid
+        .pairs()
         .flat_map(|(a, b)| p2_antinodes(a, b, &grid))
         .collect();
     Ok(format!("{}", antinodes.len()))
