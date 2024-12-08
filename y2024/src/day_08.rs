@@ -84,8 +84,8 @@ fn group_combinations(group: &[(i32, i32)]) -> impl Iterator<Item = ((i32, i32),
 
 pub fn part_1(input: &str) -> anyhow::Result<String> {
     let grid = Grid::parse(input);
-    let groups = grid.groups.values().flat_map(|g| group_combinations(g));
-    let antinodes: FxHashSet<_> = groups
+    let pairs = grid.groups.values().flat_map(|g| group_combinations(g));
+    let antinodes: FxHashSet<_> = pairs
         .flat_map(|(a, b)| p1_antinodes(a, b, &grid))
         .collect();
     Ok(format!("{}", antinodes.len()))
@@ -93,8 +93,8 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let grid = Grid::parse(input);
-    let groups = grid.groups.values().flat_map(|g| group_combinations(g));
-    let antinodes: FxHashSet<_> = groups
+    let pairs = grid.groups.values().flat_map(|g| group_combinations(g));
+    let antinodes: FxHashSet<_> = pairs
         .flat_map(|(a, b)| p2_antinodes(a, b, &grid))
         .collect();
     Ok(format!("{}", antinodes.len()))
