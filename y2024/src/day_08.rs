@@ -31,14 +31,6 @@ impl Grid {
     }
 }
 
-fn gcd(a: i32, b: i32) -> i32 {
-    if b == 0 {
-        a
-    } else {
-        gcd(b, a.rem_euclid(b))
-    }
-}
-
 fn gen_antinodes(
     a_1: (i32, i32),
     a_2: (i32, i32),
@@ -48,8 +40,6 @@ fn gen_antinodes(
     let (x1, y1) = a_1;
     let (x2, y2) = a_2;
     let (dx, dy) = (x2 - x1, y2 - y1);
-    let g = gcd(dx, dy);
-    let (dx, dy) = (dx / g, dy / g);
     let (x, y) = if mul < 0 { (x1, y1) } else { (x2, y2) };
     (0..)
         .map(move |i| (x + i * mul * dx, y + i * mul * dy))
@@ -124,11 +114,5 @@ mod tests {
     #[test]
     fn test_p2() {
         assert_eq!(part_2(EXAMPLE).unwrap().as_str(), "34");
-    }
-
-    #[test]
-    fn test_gcd() {
-        assert_eq!(gcd(4, 2), 2);
-        assert_eq!(gcd(15, 5), 5);
     }
 }
