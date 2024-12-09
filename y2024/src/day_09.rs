@@ -73,13 +73,17 @@ fn checksum_diskmap(diskmap: &[Block]) -> i64 {
     sum
 }
 
-pub fn part_1(input: &str) -> anyhow::Result<String> {
+fn partition(input: &str) -> (BinaryHeap<Block>, BinaryHeap<Reverse<Block>>) {
     let (files, empty): (Vec<_>, Vec<_>) =
         parse(input).partition(|block| matches!(block.state, NodeState::Contains(_)));
 
-    let mut empty: BinaryHeap<Reverse<Block>> =
-        BinaryHeap::from_iter(empty.into_iter().map(Reverse));
-    let mut files = BinaryHeap::from(files);
+    let empty: BinaryHeap<Reverse<Block>> = BinaryHeap::from_iter(empty.into_iter().map(Reverse));
+    let files = BinaryHeap::from(files);
+    (files, empty)
+}
+
+pub fn part_1(input: &str) -> anyhow::Result<String> {
+    let (mut files, mut empty) = partition(input);
     let mut diskmap = Vec::new();
 
     while let Some(Reverse(mut empty_node)) = empty.pop() {
@@ -129,6 +133,62 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
     Ok(format!("{checksum}"))
 }
 
+pub fn part_2(input: &str) -> anyhow::Result<String> {
+    let mut diskmap = vec![];
+    let (mut files, empty): (Vec<_>, Vec<_>) =
+        parse(input).partition(|block| matches!(block.state, NodeState::Contains(_)));
+    // We want to pop the left-most available space first
+    let mut empty: BinaryHeap<Reverse<Block>> =
+        BinaryHeap::from_iter(empty.into_iter().map(Reverse));
+    let mut unused_spaces = vec![];
+    // Reverse the empty space so left-most is at the end
+
+    while let Some(mut file) = files.pop() {
+        // Find the left-most space we can consume. Save the spaces we pop, but don't consume
+        while let Some(Reverse(mut space)) = empty.pop() {
+            if file.start < space.start {
+                diskmap.push(file);
+                empty.extend(unused_spaces.iter().copied().map(Reverse));
+                unused_spaces.clear();
+                break;
+            }
+            match space.size().cmp(&file.size()) {
+                Ordering::Less => {
+                    unused_spaces.push(space);
+                }
+                Ordering::Equal => {
+                    space.state = file.state;
+                    file.state = NodeState::Empty;
+                    diskmap.push(space);
+                    unused_spaces.push(file);
+                    empty.extend(unused_spaces.iter().copied().map(Reverse));
+                    unused_spaces.clear();
+                    break;
+                }
+                Ordering::Greater => {
+                    let size = file.size();
+                    let new_space = Block::new_empty(space.start + size, space.end);
+                    unused_spaces.push(new_space);
+                    file.start = space.start;
+                    file.end = space.start + size;
+                    diskmap.push(file);
+                    empty.extend(unused_spaces.iter().copied().map(Reverse));
+                    unused_spaces.clear();
+                    break;
+                }
+            }
+        }
+        if empty.is_empty() {
+            // Can't move the file
+            diskmap.push(file);
+            empty.extend(unused_spaces.iter().copied().map(Reverse));
+            unused_spaces.clear();
+        }
+    }
+    let checksum = checksum_diskmap(&diskmap);
+    Ok(format!("{checksum}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -152,5 +212,11 @@ mod tests {
     fn test_part_1() {
         let example = "2333133121414131402";
         assert_eq!(part_1(example).unwrap().as_str(), "1928");
+    }
+
+    #[test]
+    fn test_part_2() {
+        let example = "2333133121414131402";
+        assert_eq!(part_2(example).unwrap().as_str(), "2858");
     }
 }
