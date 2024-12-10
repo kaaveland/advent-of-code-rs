@@ -67,6 +67,29 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
     Ok(format!("{score}"))
 }
 
+pub fn part_2(input: &str) -> anyhow::Result<String> {
+    let map = Grid::parse(input);
+    let mut score = 0;
+    for (x, y) in map.trailheads() {
+        let mut work = VecDeque::new();
+        work.push_back((x, y));
+        while let Some((x, y)) = work.pop_front() {
+            if map.at(x, y) == Some(9) {
+                score += 1;
+            }
+            if map.contains(x, y) {
+                let height = map.at(x, y).unwrap();
+                for (dx, dy) in DIRS {
+                    if map.at(x + dx, y + dy) == Some(height + 1) {
+                        work.push_back((x + dx, y + dy));
+                    }
+                }
+            }
+        }
+    }
+    Ok(format!("{score}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,5 +105,9 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(part_1(EXAMPLE).unwrap(), "36");
+    }
+    #[test]
+    fn test_p2() {
+        assert_eq!(part_2(EXAMPLE).unwrap(), "81");
     }
 }
