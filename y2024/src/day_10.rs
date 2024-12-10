@@ -33,10 +33,11 @@ impl Grid {
             None
         }
     }
+
     fn trailheads(&self) -> impl Iterator<Item = (i32, i32)> + '_ {
         (0..self.width)
             .cartesian_product(0..self.height)
-            .filter(|(x, y)| self.at(*x, *y).unwrap_or(1) == 0)
+            .filter(|(x, y)| self.at(*x, *y) == Some(0))
     }
 }
 
@@ -45,9 +46,9 @@ const DIRS: [(i32, i32); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
 pub fn part_1(input: &str) -> anyhow::Result<String> {
     let map = Grid::parse(input);
     let mut score = 0;
+    let mut visited = FxHashSet::default();
+    let mut work = VecDeque::new();
     for (x, y) in map.trailheads() {
-        let mut work = VecDeque::new();
-        let mut visited = FxHashSet::default();
         work.push_back((x, y));
         while let Some((x, y)) = work.pop_front() {
             if map.contains(x, y) && visited.insert((x, y)) {
@@ -60,9 +61,10 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
             }
         }
         score += visited
-            .into_iter()
+            .iter()
             .filter(|(x, y)| map.at(*x, *y) == Some(9))
             .count();
+        visited.clear();
     }
     Ok(format!("{score}"))
 }
@@ -70,15 +72,14 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let map = Grid::parse(input);
     let mut score = 0;
+    let mut work = VecDeque::new();
     for (x, y) in map.trailheads() {
-        let mut work = VecDeque::new();
         work.push_back((x, y));
         while let Some((x, y)) = work.pop_front() {
             if map.at(x, y) == Some(9) {
                 score += 1;
             }
-            if map.contains(x, y) {
-                let height = map.at(x, y).unwrap();
+            if let Some(height) = map.at(x, y) {
                 for (dx, dy) in DIRS {
                     if map.at(x + dx, y + dy) == Some(height + 1) {
                         work.push_back((x + dx, y + dy));
