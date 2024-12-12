@@ -99,4 +99,12 @@ mod tests {
     fn test_p1() {
         assert_eq!(blinks("125 17", 25).unwrap(), 55312);
     }
+
+    #[test]
+    fn test_independent_order() {
+        assert_eq!(
+            blinks("125 17", 25).unwrap(),
+            blinks("125", 25).unwrap() + blinks("17", 25).unwrap()
+        );
+    }
 }
