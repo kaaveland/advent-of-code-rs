@@ -137,52 +137,40 @@ pub fn part_2(input: &str) -> anyhow::Result<String> {
     let mut diskmap = vec![];
     let (mut files, empty): (Vec<_>, Vec<_>) =
         parse(input).partition(|block| matches!(block.state, NodeState::Contains(_)));
-    // We want to pop the left-most available space first
-    let mut empty: BinaryHeap<Reverse<Block>> =
-        BinaryHeap::from_iter(empty.into_iter().map(Reverse));
-    let mut unused_spaces = vec![];
-    // Reverse the empty space so left-most is at the end
+    let mut heaps = vec![BinaryHeap::default(); 10];
 
-    while let Some(mut file) = files.pop() {
-        // Find the left-most space we can consume. Save the spaces we pop, but don't consume
-        while let Some(Reverse(mut space)) = empty.pop() {
-            if file.start < space.start {
-                diskmap.push(file);
-                empty.extend(unused_spaces.iter().copied().map(Reverse));
-                unused_spaces.clear();
-                break;
+    for space in empty {
+        heaps[space.size() as usize].push(Reverse(space));
+    }
+    files.sort_by_key(|block| block.state);
+
+    while let Some(mut file_node) = files.pop() {
+        let space = heaps
+            .iter()
+            .enumerate()
+            .filter_map(|(s, h)| {
+                if file_node.size() <= s as i32 {
+                    h.peek().map(|Reverse(space)| (s, space))
+                } else {
+                    None
+                }
+            })
+            .filter(|(_, space)| space.start < file_node.start)
+            .min_by_key(|(_, h)| h.start);
+
+        if let Some((heap, _)) = space {
+            let space = heaps[heap].pop().unwrap().0;
+            let remainder = space.size() - file_node.size();
+            let size = file_node.size();
+            if remainder > 0 {
+                let new_space = Block::new_empty(space.start + file_node.size(), space.end);
+                heaps[remainder as usize].push(Reverse(new_space));
             }
-            match space.size().cmp(&file.size()) {
-                Ordering::Less => {
-                    unused_spaces.push(space);
-                }
-                Ordering::Equal => {
-                    space.state = file.state;
-                    file.state = NodeState::Empty;
-                    diskmap.push(space);
-                    unused_spaces.push(file);
-                    empty.extend(unused_spaces.iter().copied().map(Reverse));
-                    unused_spaces.clear();
-                    break;
-                }
-                Ordering::Greater => {
-                    let size = file.size();
-                    let new_space = Block::new_empty(space.start + size, space.end);
-                    unused_spaces.push(new_space);
-                    file.start = space.start;
-                    file.end = space.start + size;
-                    diskmap.push(file);
-                    empty.extend(unused_spaces.iter().copied().map(Reverse));
-                    unused_spaces.clear();
-                    break;
-                }
-            }
-        }
-        if empty.is_empty() {
-            // Can't move the file
-            diskmap.push(file);
-            empty.extend(unused_spaces.iter().copied().map(Reverse));
-            unused_spaces.clear();
+            file_node.start = space.start;
+            file_node.end = space.start + size;
+            diskmap.push(file_node);
+        } else {
+            diskmap.push(file_node);
         }
     }
     let checksum = checksum_diskmap(&diskmap);
