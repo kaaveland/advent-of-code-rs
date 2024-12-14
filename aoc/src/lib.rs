@@ -3,7 +3,9 @@ use itertools::Itertools;
 use rayon::prelude::*;
 use shared::{elapsed_string, Solution};
 use std::fs;
+use std::ops::Add;
 use std::time::Instant;
+use time::{Date, Duration, Month, OffsetDateTime};
 
 pub mod dl_data;
 
@@ -55,6 +57,8 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
 
 pub fn timed_all_solutions(year: u16) -> Result<()> {
     let now = Instant::now();
+    let today = OffsetDateTime::now_utc().add(Duration::hours(4)).date();
+
     let solution_set = &YEARS
         .iter()
         .find(|(y, _)| *y == year)
@@ -63,6 +67,13 @@ pub fn timed_all_solutions(year: u16) -> Result<()> {
 
     println!("Run all implemented solutions for {year}");
     let mut outputs = vec![];
+
+    let solution_set: Vec<_> = solution_set
+        .iter()
+        .filter(|sol| {
+            Date::from_calendar_date(year as i32, Month::December, sol.day_no).unwrap() < today
+        })
+        .collect();
 
     solution_set
         .into_par_iter()
