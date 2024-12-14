@@ -1,4 +1,3 @@
-use fxhash::FxHashSet;
 use itertools::Itertools;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
@@ -78,13 +77,36 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let bots = parse(input)?;
-    for time in 0.. {
-        let pos: FxHashSet<_> = bot_positions(&bots, time, 103, 101).collect();
-        if pos.len() == bots.len() {
-            return Ok(format!("{time}"));
+    let (height, width) = (103, 101);
+    let (mut max_x, mut max_y, mut x_t, mut y_t) = (0, 0, 0, 0);
+    for time in 0..height.max(width) {
+        let mut x_freq = vec![0; width];
+        let mut y_freq = vec![0; height];
+
+        for (x, y) in bot_positions(&bots, time as i32, height as i32, width as i32) {
+            x_freq[x as usize] += 1;
+            y_freq[y as usize] += 1;
+        }
+
+        let max_freq = *x_freq.iter().max().unwrap();
+        if max_freq > max_x {
+            max_x = max_freq;
+            x_t = time;
+        }
+        let max_freq = *y_freq.iter().max().unwrap();
+        if max_freq > max_y {
+            max_y = max_freq;
+            y_t = time;
         }
     }
-    unreachable!()
+    // Now we have found x_t = time % width such that amount of bots in one column is maximized
+    // and y_t = time % height such that amount of bots in one row is maximized.
+    let mut time = x_t;
+    while time.rem_euclid(height) != y_t {
+        time += width;
+    }
+    // Now time % width = x_t and time % height = y_t, so both cycles are aligned
+    Ok(format!("{time}"))
 }
 
 #[cfg(test)]
