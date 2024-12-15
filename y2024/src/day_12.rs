@@ -89,7 +89,7 @@ pub fn part_2(input: &str) -> anyhow::Result<String> {
         while let Some((x, y)) = inner.pop() {
             if claimed.insert((x, y)) {
                 area += 1;
-                
+
                 let diags = [(-1, -1), (-1, 1), (1, -1), (1, 1)];
                 let here = Some(region);
                 for (dx, dy) in diags {
