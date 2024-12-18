@@ -313,7 +313,7 @@ Program: 0,1,5,4,3,0
             instruction_pointer: 0,
             program: vec![2, 6],
         };
-        let output = run_program(&mut computer).unwrap();
+        let _output = run_program(&mut computer).unwrap();
         assert_eq!(computer.register_b, 1);
     }
 
@@ -353,7 +353,7 @@ Program: 0,1,5,4,3,0
             instruction_pointer: 0,
             program: vec![1, 7],
         };
-        let output = run_program(&mut computer).unwrap();
+        let _output = run_program(&mut computer).unwrap();
         assert_eq!(computer.register_b, 26);
     }
 
@@ -366,7 +366,7 @@ Program: 0,1,5,4,3,0
             instruction_pointer: 0,
             program: vec![4, 0],
         };
-        let output = run_program(&mut computer).unwrap();
+        let _output = run_program(&mut computer).unwrap();
         assert_eq!(computer.register_b, 44354);
     }
 }
