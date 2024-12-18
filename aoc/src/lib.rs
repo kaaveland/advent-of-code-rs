@@ -71,7 +71,7 @@ pub fn timed_all_solutions(year: u16) -> Result<()> {
     let solution_set: Vec<_> = solution_set
         .iter()
         .filter(|sol| {
-            Date::from_calendar_date(year as i32, Month::December, sol.day_no).unwrap() < today
+            Date::from_calendar_date(year as i32, Month::December, sol.day_no).unwrap() <= today
         })
         .collect();
 
