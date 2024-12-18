@@ -169,6 +169,29 @@ impl Game {
         matches!(self.at(pos), Some(Place::Unit(Unit { team, .. })) if *team != my_team)
     }
 
+    fn elves(&self) -> usize {
+        self.map
+            .iter()
+            .filter(|place| match place {
+                Place::Unit(Unit { team, .. }) => *team == Team::Elves,
+                _ => false,
+            })
+            .count()
+    }
+
+    fn set_elf_ap(&mut self, ap: i32) {
+        self.map.iter_mut().for_each(|place| match place {
+            Place::Unit(Unit {
+                team,
+                attack_points,
+                ..
+            }) if *team == Team::Elves => {
+                *attack_points = ap;
+            }
+            _ => {}
+        })
+    }
+
     fn can_move_to(&self, pos: Pos) -> bool {
         matches!(self.at(pos), Some(Place::Open))
     }
@@ -199,7 +222,6 @@ impl Game {
             .map(|(steps, pos, first)| (steps, (pos.1, pos.0), (first.1, first.0)))
         {
             assert_eq!(self.at(first), Some(&Place::Open));
-            assert_ne!((me, first), ((19, 7), (20, 7)));
             first
         } else {
             me
@@ -286,25 +308,41 @@ impl Game {
         }
         None
     }
+
+    fn remaining_hitpoints(&self) -> i32 {
+        self.map
+            .iter()
+            .map(|place| match place {
+                Place::Unit(Unit { hit_points, .. }) => *hit_points,
+                _ => 0,
+            })
+            .sum()
+    }
 }
 
 pub fn part_1(input: &str) -> Result<String> {
     let mut game = Game::try_from(input)?;
     let rounds = game.play();
-    let hp: i32 = game
-        .map
-        .iter()
-        .filter_map(|place| match place {
-            Place::Unit(Unit { hit_points, .. }) => Some(*hit_points),
-            _ => None,
-        })
-        .sum();
-    let outcome = rounds * hp;
+    let outcome = rounds * game.remaining_hitpoints();
     Ok(format!("{outcome}"))
 }
 
-pub fn part_2(_s: &str) -> Result<String> {
-    Ok("".to_string())
+pub fn part_2(input: &str) -> Result<String> {
+    let game = Game::try_from(input)?;
+    let elves = game.elves();
+    for ap in 4.. {
+        let mut current_game = game.clone();
+        current_game.set_elf_ap(ap);
+        let mut rounds = 0;
+        while !current_game.round() && current_game.elves() == elves {
+            rounds += 1;
+        }
+        if current_game.elves() == elves {
+            let outcome = rounds * current_game.remaining_hitpoints();
+            return Ok(format!("{outcome}"));
+        }
+    }
+    unreachable!();
 }
 
 #[cfg(test)]
