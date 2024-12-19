@@ -58,7 +58,7 @@ pub fn part_1(input: &str) -> Result<String> {
 fn find_guilty_block(input: &str, start: (i32, i32), end: (i32, i32)) -> Result<(i32, i32)> {
     let memory = parse_falling_memory(input)?;
 
-    let mut bot = 1024usize;
+    let mut bot = 0;
     let mut top = memory.len();
 
     while bot < top {
