@@ -74,13 +74,24 @@ fn path_between(start: Pos, end: Pos, parents: &[Vec<Option<Pos>>]) -> Vec<Pos> 
     path
 }
 
+fn manhattan_offsets(max_cheat_len: i32) -> Vec<(i32, i32, i32)> {
+    let mut offsets = vec![];
+    for dx in -max_cheat_len..=max_cheat_len {
+        let dymax = max_cheat_len - dx.abs();
+        for dy in -dymax..=dymax {
+            offsets.push((dx, dy, dx.abs() + dy.abs()));
+        }
+    }
+    offsets
+}
+
 fn enumerate_cheats(maze: &Maze, start: Pos, end: Pos, max_cheat_len: i32) -> FxHashMap<i32, i32> {
     // Each tile reachable from end has the distance from the end in distances[y][x]
     let (distances, parents) = find_distances_from_pos(maze, end);
-    // These are the locations we can reach from end, so the location where a cheat can start
     let ybounds = 0..maze.height;
     let xbounds = 0..maze.width;
     let mut cheats_by_dist = FxHashMap::default();
+    let offsets = manhattan_offsets(max_cheat_len);
 
     for (start_x, start_y) in path_between(end, start, &parents) {
         let remaining_dist = distances[start_y as usize][start_x as usize];
@@ -88,17 +99,12 @@ fn enumerate_cheats(maze: &Maze, start: Pos, end: Pos, max_cheat_len: i32) -> Fx
         // instead. If it is a reachable tile with a path to goal, there will be a
         // length in distances[y][x] that is less than i32::max and we can choose
         // to use that instead of whatever we would get, at a cost of cheat len
-        for dx in -max_cheat_len..=max_cheat_len {
-            let allowed_dy = max_cheat_len - dx.abs();
-            for dy in -allowed_dy..=allowed_dy {
-                let (nx, ny) = (start_x + dx, start_y + dy);
-                if xbounds.contains(&nx) && ybounds.contains(&ny) && !maze.walls.contains(&(nx, ny))
-                {
-                    let cheat_cost = manhattan_dist((start_x, start_y), (nx, ny));
-                    let dist = distances[ny as usize][nx as usize];
-                    let cheat_gain = remaining_dist - dist + cheat_cost;
-                    *cheats_by_dist.entry(cheat_gain).or_insert(0) += 1;
-                }
+        for (dx, dy, cheat_cost) in offsets.iter() {
+            let (nx, ny) = (start_x + dx, start_y + dy);
+            if xbounds.contains(&nx) && ybounds.contains(&ny) && !maze.walls.contains(&(nx, ny)) {
+                let dist = distances[ny as usize][nx as usize];
+                let cheat_gain = remaining_dist - dist + cheat_cost;
+                *cheats_by_dist.entry(cheat_gain).or_insert(0) += 1;
             }
         }
     }
@@ -125,12 +131,6 @@ fn count_cheats_of_size(
 pub fn part_1(input: &str) -> anyhow::Result<String> {
     let great_cheats = count_cheats_of_size(input, 2, 100)?;
     Ok(format!("{}", great_cheats))
-}
-
-fn manhattan_dist(a: Pos, b: Pos) -> i32 {
-    let (x1, y1) = a;
-    let (x2, y2) = b;
-    (x1 - x2).abs() + (y1 - y2).abs()
 }
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
