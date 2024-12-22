@@ -1,8 +1,7 @@
-use fxhash::{FxHashMap, FxHashSet};
+use fxhash::FxHashMap;
 use itertools::izip;
 use rayon::iter::IndexedParallelIterator;
 use rayon::prelude::*;
-use std::time::Instant;
 
 fn next_secret(mut secret: u64) -> u64 {
     secret = ((secret * 64) ^ secret).rem_euclid(16777216);
@@ -47,7 +46,7 @@ fn gen_prices(secrets: &mut [u64], rounds: usize) -> Vec<Vec<i8>> {
     prices
 }
 
-fn change_maps(prices: &[Vec<i8>]) -> Vec<FxHashMap<i32, i8>> {
+fn change_maps(prices: &[Vec<i8>]) -> Vec<FxHashMap<i32, i32>> {
     let mut maps = vec![FxHashMap::default(); prices.len()];
     maps.par_iter_mut().zip(prices).for_each(|(m, p)| {
         for (p0, p1, p2, p3, p4) in izip!(
@@ -63,7 +62,7 @@ fn change_maps(prices: &[Vec<i8>]) -> Vec<FxHashMap<i32, i8>> {
                 | ((k[2] as i32 & 0xff) << 8)
                 | ((k[3] as i32) & 0xff);
             if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
-                e.insert(*p4);
+                e.insert(*p4 as i32);
             } else {
                 continue;
             }
@@ -72,25 +71,18 @@ fn change_maps(prices: &[Vec<i8>]) -> Vec<FxHashMap<i32, i8>> {
     maps
 }
 
-fn all_keys(maps: &[FxHashMap<i32, i8>]) -> FxHashSet<i32> {
-    let mut out = FxHashSet::default();
-    for m in maps {
-        out.extend(m.keys().copied());
-    }
-    out
-}
-
 fn most_bananas(prices: &[Vec<i8>]) -> i32 {
     let maps = change_maps(prices);
-    all_keys(&maps)
-        .into_par_iter()
-        .map(|k| {
-            maps.iter()
-                .map(|m| *m.get(&k).unwrap_or(&0) as i32)
-                .sum::<i32>()
-        })
-        .max()
-        .unwrap()
+    let m = maps.into_par_iter().reduce(
+        || FxHashMap::default(),
+        |mut acc, map| {
+            for (k, v) in map {
+                *acc.entry(k).or_insert(0i32) += v;
+            }
+            acc
+        },
+    );
+    *m.values().max().unwrap()
 }
 
 pub fn part_2(inp: &str) -> anyhow::Result<String> {
@@ -104,12 +96,6 @@ pub fn part_2(inp: &str) -> anyhow::Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn for_profiler() {
-        let data = include_str!("../../input/2024/day_22/input");
-        part_2(data).unwrap();
-    }
 
     #[test]
     fn test_ex_part2() {
