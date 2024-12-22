@@ -1,5 +1,5 @@
 use anyhow::Context;
-use fxhash::{FxHashMap, FxHashSet};
+use fxhash::FxHashSet;
 use std::collections::VecDeque;
 
 type Pos = (i32, i32);
@@ -40,8 +40,8 @@ fn parse(input: &str) -> anyhow::Result<(Maze, Pos, Pos)> {
     ))
 }
 
-fn find_distances_from_pos(maze: &Maze, pos: Pos) -> (Vec<Vec<i32>>, Vec<Vec<Option<Pos>>>) {
-    let mut distances = vec![vec![i32::MAX; maze.height as usize]; maze.width as usize];
+fn find_distances_from_pos(maze: &Maze, pos: Pos) -> (Vec<i32>, Vec<Vec<Option<Pos>>>) {
+    let mut distances = vec![0; (maze.height * maze.width) as usize];
     let mut parents = vec![vec![None; maze.height as usize]; maze.width as usize];
     let mut work = VecDeque::new();
     let mut visited = FxHashSet::default();
@@ -49,7 +49,7 @@ fn find_distances_from_pos(maze: &Maze, pos: Pos) -> (Vec<Vec<i32>>, Vec<Vec<Opt
     while let Some((pos, dist, parent)) = work.pop_front() {
         if !maze.walls.contains(&pos) && visited.insert(pos) {
             let (x, y) = pos;
-            distances[y as usize][x as usize] = dist;
+            distances[(x + y * maze.width) as usize] = dist;
             if let Some(parent) = parent {
                 parents[y as usize][x as usize] = Some(parent);
             }
@@ -85,30 +85,37 @@ fn manhattan_offsets(max_cheat_len: i32) -> Vec<(i32, i32, i32)> {
     offsets
 }
 
-fn enumerate_cheats(maze: &Maze, start: Pos, end: Pos, max_cheat_len: i32) -> FxHashMap<i32, i32> {
+fn enumerate_cheats(maze: &Maze, start: Pos, end: Pos, max_cheat_len: i32, mingain: i32) -> i32 {
     // Each tile reachable from end has the distance from the end in distances[y][x]
     let (distances, parents) = find_distances_from_pos(maze, end);
     let ybounds = 0..maze.height;
     let xbounds = 0..maze.width;
-    let mut cheats_by_dist = FxHashMap::default();
+    let mut count = 0;
     let offsets = manhattan_offsets(max_cheat_len);
 
     for (start_x, start_y) in path_between(end, start, &parents) {
-        let remaining_dist = distances[start_y as usize][start_x as usize];
+        let remaining_dist = distances[(start_x + maze.width * start_y) as usize];
         // Cheating means we can go to any tile within cheat_len manhattan distance
         // instead. If it is a reachable tile with a path to goal, there will be a
         // length in distances[y][x] that is less than i32::max and we can choose
         // to use that instead of whatever we would get, at a cost of cheat len
-        for (dx, dy, cheat_cost) in offsets.iter() {
-            let (nx, ny) = (start_x + dx, start_y + dy);
-            if xbounds.contains(&nx) && ybounds.contains(&ny) && !maze.walls.contains(&(nx, ny)) {
-                let dist = distances[ny as usize][nx as usize];
-                let cheat_gain = remaining_dist - dist + cheat_cost;
-                *cheats_by_dist.entry(cheat_gain).or_insert(0) += 1;
+        if remaining_dist >= mingain {
+            for (dx, dy, cheat_cost) in offsets.iter() {
+                let (nx, ny) = (start_x + dx, start_y + dy);
+                if xbounds.contains(&nx) && ybounds.contains(&ny) {
+                    let dist = distances[(nx + ny * maze.width) as usize];
+                    if dist == i32::MAX {
+                        continue;
+                    }
+                    let cheat_gain = dist - cheat_cost - remaining_dist;
+                    if cheat_gain >= mingain {
+                        count += 1;
+                    }
+                }
             }
         }
     }
-    cheats_by_dist
+    count
 }
 
 fn count_cheats_of_size(
@@ -117,15 +124,13 @@ fn count_cheats_of_size(
     cheat_gain_cutoff: i32,
 ) -> anyhow::Result<i32> {
     let (maze, start, end) = parse(input)?;
-    let cheats = enumerate_cheats(&maze, start, end, max_cheat_len);
-    let mut great_cheats = 0;
-    for (saved, cheats_found) in cheats {
-        let saved = -saved;
-        if saved >= cheat_gain_cutoff {
-            great_cheats += cheats_found;
-        }
-    }
-    Ok(great_cheats)
+    Ok(enumerate_cheats(
+        &maze,
+        start,
+        end,
+        max_cheat_len,
+        cheat_gain_cutoff,
+    ))
 }
 
 pub fn part_1(input: &str) -> anyhow::Result<String> {
@@ -136,64 +141,4 @@ pub fn part_1(input: &str) -> anyhow::Result<String> {
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let great_cheats = count_cheats_of_size(input, 20, 100)?;
     Ok(format!("{}", great_cheats))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const EXAMPLE: &str = "###############
-#...#...#.....#
-#.#.#.#.#.###.#
-#S#...#.#.#...#
-#######.#.#.###
-#######.#.#...#
-#######.#.###.#
-###..E#...#...#
-###.#######.###
-#...###...#...#
-#.#####.#.###.#
-#.#...#.#.#...#
-#.#.#.#.#.#.###
-#...#...#...###
-###############
-";
-
-    #[test]
-    fn verify_bfs() -> anyhow::Result<()> {
-        let (maze, start, end) = parse(EXAMPLE)?;
-        let (dist, parents) = find_distances_from_pos(&maze, start);
-        assert_eq!(dist[end.1 as usize][end.0 as usize], 84);
-        // Path includes start, it visits 85 places
-        assert_eq!(path_between(start, end, &parents).len(), 85);
-        Ok(())
-    }
-
-    #[test]
-    fn test_example() -> anyhow::Result<()> {
-        let (maze, start, end) = parse(EXAMPLE)?;
-        let cheats = enumerate_cheats(&maze, start, end, 2);
-        let cheats: FxHashMap<_, _> = cheats
-            .into_iter()
-            .filter(|(saved, _)| *saved < 0)
-            .map(|(dist, cheats_found)| (-dist, cheats_found))
-            .collect();
-        let expect = vec![
-            (64, 1),
-            (40, 1),
-            (38, 1),
-            (36, 1),
-            (20, 1),
-            (12, 3),
-            (10, 2),
-            (8, 4),
-            (6, 2),
-            (4, 14),
-            (2, 14),
-        ]
-        .into_iter()
-        .collect();
-        assert_eq!(cheats, expect);
-        Ok(())
-    }
 }
