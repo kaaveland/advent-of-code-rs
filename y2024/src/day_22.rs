@@ -1,12 +1,11 @@
 use fxhash::FxHashMap;
 use itertools::izip;
-use rayon::iter::IndexedParallelIterator;
 use rayon::prelude::*;
 
 fn next_secret(mut secret: u64) -> u64 {
-    secret = ((secret * 64) ^ secret).rem_euclid(16777216);
-    secret = ((secret / 32) ^ secret).rem_euclid(16777216);
-    secret = ((secret * 2048) ^ secret).rem_euclid(16777216);
+    secret = ((secret << 6) ^ secret) & 0xFFFFFF;
+    secret = ((secret >> 5) ^ secret) & 0xFFFFFF;
+    secret = ((secret << 11) ^ secret) & 0xFFFFFF;
     secret
 }
 
@@ -46,42 +45,35 @@ fn gen_prices(secrets: &mut [u64], rounds: usize) -> Vec<Vec<i8>> {
     prices
 }
 
-fn change_maps(prices: &[Vec<i8>]) -> Vec<FxHashMap<i32, i32>> {
-    let mut maps = vec![FxHashMap::default(); prices.len()];
-    maps.par_iter_mut().zip(prices).for_each(|(m, p)| {
-        for (p0, p1, p2, p3, p4) in izip!(
-            p.iter(),
-            p.iter().skip(1),
-            p.iter().skip(2),
-            p.iter().skip(3),
-            p.iter().skip(4),
-        ) {
-            let k = [p1 - p0, p2 - p1, p3 - p2, p4 - p3];
-            let k = (((k[0] as i32) & 0xff) << 24)
-                | ((k[1] as i32 & 0xff) << 16)
-                | ((k[2] as i32 & 0xff) << 8)
-                | ((k[3] as i32) & 0xff);
-            if let std::collections::hash_map::Entry::Vacant(e) = m.entry(k) {
-                e.insert(*p4 as i32);
-            } else {
-                continue;
-            }
-        }
-    });
-    maps
-}
-
 fn most_bananas(prices: &[Vec<i8>]) -> i32 {
-    let maps = change_maps(prices);
-    let m = maps.into_par_iter().reduce(
-        || FxHashMap::default(),
-        |mut acc, map| {
+    let m: FxHashMap<_, _> = prices
+        .into_par_iter()
+        .map(|p| {
+            let mut m = FxHashMap::default();
+            let deltas_0 = p
+                .iter()
+                .zip(p.iter().skip(1))
+                .map(|(a, b)| b - a)
+                .map(|n| (n + 9) as u8);
+            let deltas_1 = deltas_0.clone().skip(1);
+            let deltas_2 = deltas_1.clone().skip(1);
+            let deltas_3 = deltas_2.clone().skip(1);
+            let p4 = p.iter().skip(4);
+            for (d0, d1, d2, d3, p) in izip!(deltas_0, deltas_1, deltas_2, deltas_3, p4) {
+                let k = ((d0 as u32) & 0x1F)
+                    | (((d1 as u32) & 0x1F) << 5)
+                    | (((d2 as u32) & 0x1F) << 10)
+                    | (((d3 as u32) & 0x1F) << 15);
+                m.entry(k).or_insert(*p as i32);
+            }
+            m
+        })
+        .reduce(FxHashMap::default, |mut acc, map| {
             for (k, v) in map {
-                *acc.entry(k).or_insert(0i32) += v;
+                *acc.entry(k).or_default() += v;
             }
             acc
-        },
-    );
+        });
     *m.values().max().unwrap()
 }
 
