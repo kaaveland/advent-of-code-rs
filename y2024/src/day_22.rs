@@ -1,3 +1,4 @@
+use bit_set::BitSet;
 use std::sync::Mutex;
 use std::thread;
 
@@ -30,7 +31,7 @@ fn monkey_business(monkeys: &[i32], counter: &Mutex<Vec<i32>>) {
         let mut secret = *monkey;
         let mut last_price = secret % 10;
         let mut k = 0;
-        let mut seen = vec![false; 130321];
+        let mut seen = BitSet::with_capacity(130321);
 
         for round in 0..2000 {
             secret = ((secret << 6) ^ secret) & 0xFFFFFF;
@@ -38,8 +39,7 @@ fn monkey_business(monkeys: &[i32], counter: &Mutex<Vec<i32>>) {
             secret = ((secret << 11) ^ secret) & 0xFFFFFF;
             let price = secret % 10;
             k = (k * 19 + (price - last_price + 9)) % 130321;
-            if round >= 3 && !seen[k as usize] {
-                seen[k as usize] = true;
+            if round >= 3 && seen.insert(k as usize) {
                 work.push((k as usize, price));
             }
             last_price = price;
