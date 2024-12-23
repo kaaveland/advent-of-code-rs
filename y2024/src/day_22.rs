@@ -23,11 +23,11 @@ pub fn part_1(inp: &str) -> anyhow::Result<String> {
 
 fn maximize_bananas(monkeys: &[i32]) -> i32 {
     let mut counter = vec![0; 1 << 20];
+    let k_mask = (1 << 20) - 1;
     for monkey in monkeys {
         let mut secret = *monkey;
         let mut last_price = secret % 10;
-        let mut d0;
-        let (mut d1, mut d2, mut d3) = (0u8, 0u8, 0u8);
+        let mut k = 0;
         let mut seen = vec![false; 1 << 20];
 
         for round in 0..2000 {
@@ -35,17 +35,10 @@ fn maximize_bananas(monkeys: &[i32]) -> i32 {
             secret = ((secret >> 5) ^ secret) & 0xFFFFFF;
             secret = ((secret << 11) ^ secret) & 0xFFFFFF;
             let price = secret % 10;
-            (d0, d1, d2) = (d1, d2, d3);
-            d3 = (price - last_price + 9) as u8;
-            if round >= 3 {
-                let k = ((d0 & 0x1F) as i32)
-                    | (((d1 & 0x1F) as i32) << 5)
-                    | (((d2 & 0x1F) as i32) << 10)
-                    | (((d3 & 0x1F) as i32) << 15);
-                if !seen[k as usize] {
-                    seen[k as usize] = true;
-                    counter[k as usize] += price;
-                }
+            k = ((k << 5) | (price - last_price + 9) & 0x1F) & k_mask;
+            if round >= 3 && !seen[k as usize] {
+                seen[k as usize] = true;
+                counter[k as usize] += price;
             }
             last_price = price;
         }
