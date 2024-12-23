@@ -1,3 +1,6 @@
+use std::sync::Mutex;
+use std::thread;
+
 fn next_secret(mut secret: u64) -> u64 {
     secret = ((secret << 6) ^ secret) & 0xFFFFFF;
     secret = ((secret >> 5) ^ secret) & 0xFFFFFF;
@@ -21,29 +24,51 @@ pub fn part_1(inp: &str) -> anyhow::Result<String> {
     Ok(format!("{n}"))
 }
 
-fn maximize_bananas(monkeys: &[i32]) -> i32 {
-    let mut counter = vec![0; 1 << 20];
-    let k_mask = (1 << 20) - 1;
-    for monkey in monkeys {
+fn monkey_business(monkeys: &[i32], counter: &Mutex<Vec<i32>>) {
+    let mut work = vec![];
+    for (monkey_no, monkey) in monkeys.iter().enumerate() {
         let mut secret = *monkey;
         let mut last_price = secret % 10;
         let mut k = 0;
-        let mut seen = vec![false; 1 << 20];
+        let mut seen = vec![false; 130321];
 
         for round in 0..2000 {
             secret = ((secret << 6) ^ secret) & 0xFFFFFF;
             secret = ((secret >> 5) ^ secret) & 0xFFFFFF;
             secret = ((secret << 11) ^ secret) & 0xFFFFFF;
             let price = secret % 10;
-            k = ((k << 5) | (price - last_price + 9) & 0x1F) & k_mask;
+            k = (k * 19 + (price - last_price + 9)) % 130321;
             if round >= 3 && !seen[k as usize] {
                 seen[k as usize] = true;
-                counter[k as usize] += price;
+                work.push((k as usize, price));
             }
             last_price = price;
         }
+
+        if work.len() > 5000 || monkey_no == monkeys.len() - 1 {
+            if let Ok(mut inner) = counter.lock() {
+                for (k, price) in work {
+                    inner[k] += price;
+                }
+                work = vec![];
+            }
+        }
     }
-    counter.into_iter().max().unwrap()
+}
+
+fn maximize_bananas(monkeys: &[i32]) -> i32 {
+    let counter = Mutex::new(vec![0; 130321]); // 19 ^ 4
+    let nthreads = 4;
+    let chunksize = monkeys.len().div_ceil(nthreads);
+    thread::scope(|scope| {
+        for chunk in monkeys.chunks(chunksize) {
+            scope.spawn(|| {
+                monkey_business(chunk, &counter);
+            });
+        }
+    });
+    let inner = counter.lock().unwrap();
+    *inner.iter().max().unwrap()
 }
 
 pub fn part_2(inp: &str) -> anyhow::Result<String> {

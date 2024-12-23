@@ -154,55 +154,46 @@ enum Choice {
     Options(FxHashSet<Instruction>),
 }
 
-fn initial() -> [Choice; 16] {
+fn initial<const N: usize>() -> [Choice; N] {
     let mut all = vec![];
-    for _ in 0..16 {
+    for _ in 0..N {
         all.push(Options(FxHashSet::from_iter(ALL.into_iter())));
     }
 
     all.try_into().unwrap()
 }
 
-fn choose(choices: &mut [Choice; 16], place: usize, instruction: Instruction) {
+fn choose<const N: usize>(choices: &mut [Choice; N], place: usize, instruction: Instruction) {
     if let Some(choice) = choices.get_mut(place) {
-        if let Options(set) = choice {
-            assert!(set.contains(&instruction));
+        if let Options(_) = choice {
             *choice = Decided(instruction);
-        } else if let Decided(old) = choice {
-            assert_eq!(*old, instruction);
-        }
-    } else {
-        panic!("Out of bounds: {place}")
-    }
-    for other_place in 0..16 {
-        if other_place != place {
-            eliminate(choices, other_place, instruction);
-        }
-    }
-}
-
-fn eliminate(choices: &mut [Choice; 16], place: usize, instruction: Instruction) {
-    if let Some(choice) = choices.get_mut(place) {
-        if let Options(set) = choice {
-            set.remove(&instruction);
-            if set.len() == 1 {
-                let chosen = set.iter().copied().next().unwrap();
-                choose(choices, place, chosen);
+            for other_place in 0..N {
+                if other_place != place {
+                    eliminate(choices, other_place, instruction);
+                }
             }
-        } else if let Decided(old) = choice {
-            assert_ne!(*old, instruction);
         }
     }
 }
 
-fn done(choices: &[Choice; 16]) -> bool {
+fn eliminate<const N: usize>(choices: &mut [Choice; N], place: usize, instruction: Instruction) {
+    if let Some(Options(set)) = choices.get_mut(place) {
+        set.remove(&instruction);
+        if set.len() == 1 {
+            let chosen = set.iter().copied().next().unwrap();
+            choose(choices, place, chosen);
+        }
+    }
+}
+
+fn done<const N: usize>(choices: &[Choice; N]) -> bool {
     choices.iter().all(|choice| matches!(choice, Decided(_)))
 }
 
-fn identify_opcodes(examples: &[Example]) -> [Instruction; 16] {
-    let mut out = [Addr; 16];
-    let mut choices = initial();
-    for ex in examples.into_iter() {
+fn identify_opcodes<const N: usize>(examples: &[Example]) -> [Instruction; N] {
+    let mut out = [Addr; N];
+    let mut choices = initial::<N>();
+    for ex in examples.iter() {
         for (place, compat) in compatible_instructions(ex.before, ex.program, ex.after)
             .iter()
             .enumerate()
@@ -228,7 +219,7 @@ fn identify_opcodes(examples: &[Example]) -> [Instruction; 16] {
 
 pub fn part_2(s: &str) -> anyhow::Result<String> {
     let (examples, programs) = parse(s)?;
-    let mapping = identify_opcodes(&examples);
+    let mapping = identify_opcodes::<16>(&examples);
     let mut registers = [0; 4];
     for prog in programs {
         registers = exec(registers, prog, mapping[prog[0]]).context("Unable to execute program")?;
