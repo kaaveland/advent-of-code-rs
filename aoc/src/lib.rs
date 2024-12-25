@@ -3,7 +3,7 @@ use itertools::Itertools;
 use rayon::prelude::*;
 use shared::{elapsed_string, Solution};
 use std::fs;
-use std::ops::Add;
+use std::ops::Sub;
 use std::time::Instant;
 use time::{Date, Duration, Month, OffsetDateTime};
 
@@ -57,7 +57,7 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
 
 pub fn timed_all_solutions(year: u16) -> Result<()> {
     let now = Instant::now();
-    let today = OffsetDateTime::now_utc().add(Duration::hours(4)).date();
+    let today = OffsetDateTime::now_utc().sub(Duration::hours(4)).date();
 
     let solution_set = &YEARS
         .iter()

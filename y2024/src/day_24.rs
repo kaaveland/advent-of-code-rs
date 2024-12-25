@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use fxhash::{FxHashMap, FxHashSet};
+use itertools::Itertools;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::{char, none_of};
@@ -12,26 +13,26 @@ use BinaryOp::*;
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash)]
 struct ProvidedValue<'a> {
-    reg_name: &'a str,
+    wire: &'a str,
     reg: char,
     index: usize,
     value: bool,
 }
 
 fn parse_provided_value(s: &str) -> IResult<&str, ProvidedValue> {
-    let (s, reg_name) = recognize(many1(none_of(":\n")))(s)?;
-    let reg = reg_name.chars().next().unwrap();
-    let index = if let Ok(dig) = reg_name[1..].parse::<usize>() {
+    let (s, wire) = recognize(many1(none_of(":\n")))(s)?;
+    let reg = wire.chars().next().unwrap();
+    let index = if let Ok(dig) = wire[1..].parse::<usize>() {
         dig
     } else {
-        panic!("{reg_name}")
+        panic!("{wire}")
     };
     let (s, _skip) = tag(": ")(s)?;
     let (s, value) = alt((map(char('1'), |_| true), map(char('0'), |_| false)))(s)?;
     Ok((
         s,
         ProvidedValue {
-            reg_name,
+            wire,
             reg,
             index,
             value,
@@ -56,7 +57,7 @@ fn parse_binop(s: &str) -> IResult<&str, BinaryOp> {
 
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash)]
 struct CalculatedValue<'a> {
-    dest_name: &'a str,
+    wire: &'a str,
     z_index: Option<usize>,
     op: BinaryOp,
     lhs: &'a str,
@@ -67,8 +68,8 @@ fn parse_calculated_value(s: &str) -> IResult<&str, CalculatedValue> {
     let (s, lhs) = terminated(recognize(many1(none_of(" "))), tag(" "))(s)?;
     let (s, op) = terminated(parse_binop, tag(" "))(s)?;
     let (s, rhs) = terminated(recognize(many1(none_of(" "))), tag(" -> "))(s)?;
-    let (s, dest_name) = recognize(many1(none_of("\n")))(s)?;
-    let z_index = if let Ok(ix) = dest_name[1..].parse::<usize>() {
+    let (s, wire) = recognize(many1(none_of("\n")))(s)?;
+    let z_index = if let Ok(ix) = wire[1..].parse::<usize>() {
         Some(ix)
     } else {
         None
@@ -76,7 +77,7 @@ fn parse_calculated_value(s: &str) -> IResult<&str, CalculatedValue> {
     Ok((
         s,
         CalculatedValue {
-            dest_name,
+            wire,
             z_index,
             op,
             lhs,
@@ -88,7 +89,7 @@ fn parse_calculated_value(s: &str) -> IResult<&str, CalculatedValue> {
 fn parse(s: &str) -> Result<(Vec<ProvidedValue>, Vec<CalculatedValue>)> {
     let (_, r) = separated_pair(
         separated_list1(tag("\n"), parse_provided_value),
-        tag("\n"),
+        tag("\n\n"),
         separated_list1(tag("\n"), parse_calculated_value),
     )(s)
     .map_err(|err| anyhow!("{err}"))?;
@@ -100,8 +101,8 @@ fn dependencies<'a>(
 ) -> FxHashMap<&'a str, FxHashSet<&'a str>> {
     let mut deps: FxHashMap<&str, FxHashSet<_>> = FxHashMap::default();
     for c in calculated {
-        deps.entry(c.lhs).or_default().insert(c.dest_name);
-        deps.entry(c.rhs).or_default().insert(c.dest_name);
+        deps.entry(c.lhs).or_default().insert(c.wire);
+        deps.entry(c.rhs).or_default().insert(c.wire);
     }
     deps
 }
@@ -111,12 +112,9 @@ fn calculate<'a>(
     calculated_values: &'a [CalculatedValue],
 ) -> FxHashMap<usize, bool> {
     let mut deps = dependencies(calculated_values);
-    let by_name: FxHashMap<_, _> = calculated_values.iter().map(|c| (c.dest_name, c)).collect();
+    let by_name: FxHashMap<_, _> = calculated_values.iter().map(|c| (c.wire, c)).collect();
     let mut known = FxHashMap::default();
-    let mut work: VecDeque<_> = provided_value
-        .iter()
-        .map(|p| (p.reg_name, p.value))
-        .collect();
+    let mut work: VecDeque<_> = provided_value.iter().map(|p| (p.wire, p.value)).collect();
     let mut z = FxHashMap::default();
 
     while let Some((reg, value)) = work.pop_front() {
@@ -136,7 +134,7 @@ fn calculate<'a>(
                     if let Some(ix) = calc.z_index {
                         z.insert(ix, result);
                     }
-                    work.push_back((calc.dest_name, result));
+                    work.push_back((calc.wire, result));
                 }
             }
         }
@@ -158,6 +156,54 @@ pub fn part_1(s: &str) -> Result<String> {
 
 fn check_assumptions(provided: &[ProvidedValue]) {
     assert!(provided.iter().all(|p| p.reg == 'y' || p.reg == 'x'));
+}
+
+pub fn part_2(s: &str) -> Result<String> {
+    let (_, calculated) = parse(s)?;
+    // Half adder on LSB
+    // takes x and y and outputs sum and carry
+    // made with sum = x ^ y and carry x & y
+    // Full adder:
+    // x, y and carry-in (chained, initially from half adder)
+    // sum = (x ^ y) ^ (carry-in) -> this sets bit in z, so z should only come from XOR (other than MSB)
+    // carry-out: = ((x ^ y) & carry-in) | (x & y)
+    // Other than half adder, | is the only consumer of & outputs
+    // Swapping carry-in for sum would look like ^ going to |
+    let mut sus = vec![];
+
+    let in_out = |s: &str| s.starts_with("x") || s.starts_with("y") || s.starts_with("z");
+
+    for c in &calculated {
+        // z should be all XOR except the highest one
+        if c.z_index.is_some() && c.z_index != Some(45) && c.op != Xor {
+            sus.push(c.wire);
+        }
+        // XOR should be writing to z or reading from x, y (probably swapped with above)
+        if c.op == Xor && !in_out(c.lhs) && !in_out(c.rhs) && !in_out(c.wire) {
+            sus.push(c.wire);
+        }
+        // AND, other than the very first carry, should go to OR
+        if c.op == And
+            && c.lhs != "x00"
+            && c.rhs != "y00"
+            && calculated
+                .iter()
+                .any(|child| child.op != Or && (child.lhs == c.wire || child.rhs == c.wire))
+        {
+            sus.push(c.wire);
+        }
+        // XOR should never go directly to OR (probably swapped with above)
+        if c.op == Xor
+            && calculated
+                .iter()
+                .any(|child| child.op == Or && (child.lhs == c.wire || child.rhs == c.wire))
+        {
+            sus.push(c.wire);
+        }
+    }
+
+    sus.sort();
+    Ok(sus.into_iter().unique().join(","))
 }
 
 #[cfg(test)]
@@ -235,7 +281,7 @@ tnw OR pbm -> gnj
         assert_eq!(
             parse_provided_value("x09: 1").unwrap().1,
             ProvidedValue {
-                reg_name: "x09",
+                wire: "x09",
                 reg: 'x',
                 index: 9,
                 value: true
@@ -248,7 +294,7 @@ tnw OR pbm -> gnj
         assert_eq!(
             parse_calculated_value("twb XOR jgm -> z41").unwrap().1,
             CalculatedValue {
-                dest_name: "z41",
+                wire: "z41",
                 z_index: Some(41),
                 op: Xor,
                 lhs: "twb",
@@ -259,7 +305,7 @@ tnw OR pbm -> gnj
         assert_eq!(
             parse_calculated_value("twb OR jgm -> zjx").unwrap().1,
             CalculatedValue {
-                dest_name: "zjx",
+                wire: "zjx",
                 z_index: None,
                 op: Or,
                 lhs: "twb",
