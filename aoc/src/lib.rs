@@ -9,7 +9,7 @@ use time::{Date, Duration, Month, OffsetDateTime};
 
 pub mod dl_data;
 
-const YEARS: [(u16, [Solution; 25]); 7] = [
+pub const YEARS: [(u16, [Solution; 25]); 7] = [
     (2018, y2018::SOLUTIONS),
     (2019, y2019::SOLUTIONS),
     (2020, y2020::SOLUTIONS),
