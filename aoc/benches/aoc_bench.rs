@@ -9,10 +9,10 @@ fn setup_bench_functions(c: &mut Criterion) {
             let day = format!("{:0>2}", solution.day_no);
             let path = format!("../input/{year}/day_{day}/input");
             if let Ok(input) = fs::read_to_string(path) {
-                group.bench_function(format!("{day}/part 1"), |b| {
+                group.bench_function(format!("{day}/part_1"), |b| {
                     b.iter(|| (solution.part_1)(black_box(input.as_str())).unwrap())
                 });
-                group.bench_function(format!("{day}/part 2"), |b| {
+                group.bench_function(format!("{day}/part_2"), |b| {
                     b.iter(|| (solution.part_2)(black_box(input.as_str())).unwrap())
                 });
             }

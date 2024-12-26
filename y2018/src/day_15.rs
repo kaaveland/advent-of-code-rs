@@ -41,7 +41,7 @@ fn parse(input: &str) -> impl Iterator<Item = (Pos, Option<Tile>)> + '_ {
         .flat_map(|(y, line)| {
             line.chars().enumerate().map(move |(x, ch)| {
                 (
-                    (x as i32, y as i32),
+                    (y as i32, x as i32),
                     match ch {
                         '#' => Some(Tile::Wall),
                         '.' => Some(Tile::Open),
@@ -61,7 +61,7 @@ struct Game {
     width: i32,
 }
 
-const DIRS: [Pos; 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+const DIRS: [Pos; 4] = [(-1, 0), (0, -1), (0, 1), (1, 0)];
 
 impl TryFrom<&str> for Game {
     type Error = anyhow::Error;
@@ -100,11 +100,11 @@ impl TryFrom<&str> for Game {
 }
 
 impl Game {
-    fn contains(&self, x: i32, y: i32) -> bool {
+    fn contains(&self, y: i32, x: i32) -> bool {
         (x >= 0 && x < self.width) && (y >= 0 && y < self.height)
     }
 
-    fn idx(&self, x: i32, y: i32) -> Option<usize> {
+    fn idx(&self, y: i32, x: i32) -> Option<usize> {
         if self.contains(x, y) {
             Some(x as usize + (y as usize * self.width as usize))
         } else {
@@ -132,8 +132,8 @@ impl Game {
         let mut locs: Vec<_> = (0..self.height)
             .cartesian_product(0..self.width)
             .filter_map(|(y, x)| {
-                if let Some(Place::Unit(_)) = self.at((x, y)) {
-                    Some((x, y))
+                if let Some(Place::Unit(_)) = self.at((y, x)) {
+                    Some((y, x))
                 } else {
                     None
                 }
@@ -200,26 +200,19 @@ impl Game {
         // do not move if enemies are within range
         if DIRS
             .iter()
-            .any(|(dx, dy)| self.is_enemy((me.0 + dx, me.1 + dy), team))
+            .any(|(dy, dx)| self.is_enemy((me.0 + dy, me.1 + dx), team))
         {
             return me;
         }
 
-        let adjacent_to_enemies = (0..self.height)
+        let in_range_by_reading_order = (0..self.height)
             .cartesian_product(0..self.width)
-            .filter(|(y, x)| self.is_enemy((*x, *y), team))
-            .flat_map(|(y, x)| DIRS.iter().map(move |dir| (x + dir.0, y + dir.1)))
+            .filter(|(y, x)| self.is_enemy((*y, *x), team))
+            .flat_map(|(y, x)| DIRS.iter().map(move |dir| (y + dir.0, x + dir.1)))
             .filter(|&pos| self.can_move_to(pos))
             .collect_vec();
 
-        if let Some((_, _, first)) = adjacent_to_enemies
-            .into_iter()
-            .filter_map(|pos| {
-                self.first_step_by_steps_needed(me, pos)
-                    .map(|(steps, first)| (steps, (pos.1, pos.0), (first.1, first.0)))
-            })
-            .min()
-            .map(|(steps, pos, first)| (steps, (pos.1, pos.0), (first.1, first.0)))
+        if let Some((_, _, first)) = self.first_step_by_steps_needed(me, &in_range_by_reading_order)
         {
             assert_eq!(self.at(first), Some(&Place::Open));
             first
@@ -273,29 +266,33 @@ impl Game {
             .filter_map(|pos| match self.at(pos) {
                 Some(&Place::Unit(Unit {
                     team, hit_points, ..
-                })) if team != my_team => Some((hit_points, (pos.1, pos.0))),
+                })) if team != my_team => Some((hit_points, pos)),
                 _ => None,
             })
             .min()
-            .map(|(_, pos)| (pos.1, pos.0))
+            .map(|(_, pos)| pos)
     }
 
-    fn first_step_by_steps_needed(&self, start_pos: Pos, end_pos: Pos) -> Option<(usize, Pos)> {
+    fn first_step_by_steps_needed(
+        &self,
+        start_pos: Pos,
+        end_pos: &[Pos],
+    ) -> Option<(usize, Pos, Pos)> {
         let mut visited = FxHashSet::default();
         let mut work: VecDeque<(Pos, usize, Option<Pos>)> = VecDeque::new();
         work.push_back((start_pos, 0, None));
         while let Some((pos, steps, first_step)) = work.pop_front() {
-            if pos == end_pos {
+            if end_pos.contains(&pos) {
                 // This is one shortest path. Since we're doing BFS, if there are shortest paths
-                // othen than the one we found, they must have the same step count
-                // take the minimum one by reading order
+                // other than the one we found, they must have the same step count and therefore
+                // already be on the queue. Take the minimum one by reading order
                 work.push_front((pos, steps, first_step));
                 return work
                     .into_iter()
                     .take_while(|(_, stepcount, _)| *stepcount == steps)
-                    .filter(|(pos, _, _)| *pos == end_pos)
-                    .min_by_key(|((x, y), _, first)| (*y, *x, first.unwrap().1, first.unwrap().0))
-                    .map(|(_, stepcount, first)| (stepcount, first.unwrap()));
+                    .filter(|(pos, _, _)| end_pos.contains(pos))
+                    .min()
+                    .map(|(p, stepcount, first)| (stepcount, p, first.unwrap()));
             }
             if visited.insert((pos, first_step)) {
                 for dir in DIRS {
@@ -359,7 +356,7 @@ mod tests {
         let game = Game::try_from(ex).unwrap();
         assert_eq!(
             game.unit_locations(),
-            vec![(4, 3), (2, 3), (5, 2), (3, 2), (1, 2), (4, 1), (2, 1)]
+            vec![(3, 4), (3, 2), (2, 3), (2, 1), (1, 4), (1, 2)]
         );
     }
 
@@ -374,7 +371,7 @@ mod tests {
         )
         .unwrap();
         let elf = (2, 2);
-        assert_eq!(game.find_next_move_for_unit(elf, Team::Elves), (3, 2));
+        assert_eq!(game.find_next_move_for_unit(elf, Team::Elves), (2, 3));
     }
 
     #[test]
@@ -395,11 +392,11 @@ mod tests {
             }
         }
         set_hp(&mut game, (0, 0), 9);
-        set_hp(&mut game, (2, 1), 4);
-        set_hp(&mut game, (3, 2), 2);
+        set_hp(&mut game, (1, 2), 4);
         set_hp(&mut game, (2, 3), 2);
-        set_hp(&mut game, (3, 4), 1);
-        assert_eq!(game.find_target((2, 2), Team::Elves), Some((3, 2)));
+        set_hp(&mut game, (3, 2), 2);
+        set_hp(&mut game, (4, 3), 1);
+        assert_eq!(game.find_target((2, 2), Team::Elves), Some((2, 3)));
     }
 
     #[test]
@@ -441,8 +438,7 @@ mod tests {
 #######",
         )
         .unwrap();
-        // goblin at 3, 1 should move to 4, 1
-        assert_eq!(game.find_next_move_for_unit((3, 1), Team::Goblin), (4, 1));
+        assert_eq!(game.find_next_move_for_unit((1, 3), Team::Goblin), (1, 4));
     }
 
     #[test]
