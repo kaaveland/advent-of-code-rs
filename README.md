@@ -1,7 +1,7 @@
 Advent of Code solutions in Rust
 ==
 
-My solutions for Advent of Code puzzles in Rust, created in 2022/2023.
+My solutions for Advent of Code puzzles in Rust, created in 2022/2023/2024.
 I used these puzzles to learn to program Rust.
 
 There's a small command line utility to run the programs and download data from advent of code. Most
@@ -17,6 +17,7 @@ Progress
 
 These runtimes are for all the puzzles in each year, ran with `hyperfine -N --warmup 20`.
 
+- 2024: ✅ Time (mean ± σ):      51.5 ms ±   8.2 ms
 - 2023: ✅ Time (mean ± σ):     245.5 ms ±   9.5 ms
 - 2022: ✅ Time (mean ± σ):     177.2 ms ±   4.0 ms
 - 2021: ✅ Time (mean ± σ):     101.0 ms ±   2.8 ms
@@ -204,7 +205,7 @@ Solution comments
   but increasingly I find that I do a lot of work to transform my part 2 into an input that will allow me to reuse my part 1
   code somehow. Perhaps it's about time I make some decent, reusable search implementations, but I really like that the
   programs are more or less standalone.
- 
+
 2020 learning/impressions:
 
 - Compile times were getting long enough to be annoying at this point, but switching the layout of the repo to use
