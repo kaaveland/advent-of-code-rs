@@ -20,6 +20,7 @@ mod day_17;
 mod day_18;
 mod day_19;
 mod day_20;
+mod elflang;
 
 pub const SOLUTIONS: [Solution; 25] = [
     Solution {
