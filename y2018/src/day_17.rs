@@ -44,7 +44,7 @@ fn posint(s: &str) -> IResult<&str, u32> {
 }
 
 fn parse_pointspec(s: &str) -> IResult<&str, PointSpec> {
-    let single = map(posint, |n| One(n));
+    let single = map(posint, One);
     let many = map(separated_pair(posint, tag(".."), posint), |(s, e)| {
         Many(s, e)
     });

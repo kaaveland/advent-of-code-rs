@@ -150,7 +150,7 @@ impl Warehouse for SupersizedMap {
                 }
             }
         }
-        self.boxes.retain(|pos| !to_move.contains(&pos));
+        self.boxes.retain(|pos| !to_move.contains(pos));
         for left_side in to_move {
             self.boxes.insert(dir.next(left_side));
         }

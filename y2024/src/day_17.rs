@@ -91,7 +91,7 @@ fn posint(s: &str) -> IResult<&str, i64> {
 }
 
 fn int(s: &str) -> IResult<&str, i64> {
-    alt((map(preceded(char('-'), posint), |x| -1 * x), posint))(s)
+    alt((map(preceded(char('-'), posint), |x| -x), posint))(s)
 }
 
 fn parse_register(s: &str) -> IResult<&str, Register> {

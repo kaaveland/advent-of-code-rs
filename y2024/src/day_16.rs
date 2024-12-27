@@ -78,13 +78,11 @@ fn parse(input: &str) -> anyhow::Result<(Maze, Pos, Pos)> {
     Ok((Maze { walls }, start, end))
 }
 
-fn solve(
-    maze: &Maze,
-    start: Pos,
-    end: Pos,
-) -> anyhow::Result<(i64, FxHashMap<(Pos, Direction), i64>)> {
+type Cache = FxHashMap<(Pos, Direction), i64>;
+
+fn solve(maze: &Maze, start: Pos, end: Pos) -> anyhow::Result<(i64, Cache)> {
     let mut work = BinaryHeap::default();
-    let mut cache: FxHashMap<(Pos, Direction), i64> = FxHashMap::default();
+    let mut cache: Cache = FxHashMap::default();
     work.push(Reverse(State {
         cost: 0,
         pos: start,

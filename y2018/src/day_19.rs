@@ -129,6 +129,8 @@ fn exec(command: &Command, ip: &mut usize, ip_reg: usize, reg: &mut Register) ->
     Some(())
 }
 
+type ExecTrace = (usize, usize, Command, Register, Register);
+
 /// Keeping this, because it's how I figured out what the loop does
 /// and because we can use it to identify which register that is set up
 /// for the loop counter / input
@@ -137,7 +139,7 @@ fn trace_until_loop(
     program: &[Command],
     initial_reg0: usize,
     loop_count: usize,
-) -> Result<Vec<(usize, usize, Command, Register, Register)>> {
+) -> Result<Vec<ExecTrace>> {
     let mut ip = 0;
     let mut reg: Register = [0; 6];
     let mut trace = Vec::new();
@@ -225,15 +227,15 @@ mod tests {
     #[test]
     fn parse_ins() {
         let mut parser = parse_instruction("seti", Seti);
-        assert!(matches!(parser("seti"), Ok(_)));
+        assert!(parser("seti").is_ok());
     }
     #[test]
     fn test_parse_cmd() {
-        assert!(matches!(parse_command("seti 5 0 1\n"), Ok(_)));
+        assert!(parse_command("seti 5 0 1\n").is_ok());
     }
     #[test]
     fn test_parse_reg() {
-        assert!(matches!(parse_reg(" 5"), Ok(_)));
+        assert!(parse_reg(" 5").is_ok());
     }
 
     #[test]
