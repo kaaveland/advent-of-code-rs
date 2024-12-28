@@ -6,9 +6,64 @@ use nom::combinator::{map, map_res};
 use nom::multi::separated_list1;
 use nom::sequence::{preceded, separated_pair, terminated, tuple};
 use nom::IResult;
+use AsmInstruction::*;
 use Instruction::*;
 
 pub type Registers<const N: usize> = [usize; N];
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub(crate) enum Operand<'a> {
+    Lit(usize),
+    Reg(&'a str),
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub(crate) enum AsmInstruction<'a> {
+    Add(Operand<'a>, Operand<'a>),
+    Mul(Operand<'a>, Operand<'a>),
+    And(Operand<'a>, Operand<'a>),
+    Or(Operand<'a>, Operand<'a>),
+    Set(Operand<'a>),
+    Greater(Operand<'a>, Operand<'a>),
+    Equal(Operand<'a>, Operand<'a>),
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub(crate) struct DisElf<'a> {
+    pub(crate) result_reg: &'a str,
+    pub(crate) asm_instruction: AsmInstruction<'a>,
+}
+
+impl<'a> DisElf<'a> {
+    pub(crate) fn dis<const N: usize>(value: &Command, regs: [&'a str; N]) -> Option<Self> {
+        let reg_a = regs.get(value.reg_a).copied().map(Operand::Reg);
+        let val_a = Operand::Lit(value.reg_a);
+        let reg_b = regs.get(value.reg_b).copied().map(Operand::Reg);
+        let val_b = Operand::Lit(value.reg_b);
+
+        Some(DisElf {
+            result_reg: regs.get(value.reg_c)?,
+            asm_instruction: match value.instruction {
+                Addr => Add(reg_a?, reg_b?),
+                Addi => Add(reg_a?, val_b),
+                Mulr => Mul(reg_a?, reg_b?),
+                Muli => Mul(reg_a?, val_b),
+                Banr => And(reg_a?, reg_b?),
+                Bani => And(reg_a?, val_b),
+                Borr => Or(reg_a?, reg_b?),
+                Bori => Or(reg_a?, val_b),
+                Setr => Set(reg_a?),
+                Seti => Set(val_a),
+                Gtir => Greater(val_a, reg_b?),
+                Gtri => Greater(reg_a?, val_b),
+                Gtrr => Greater(reg_a?, reg_b?),
+                Eqir => Equal(val_a, reg_b?),
+                Eqri => Equal(reg_a?, val_b),
+                Eqrr => Equal(reg_a?, reg_b?),
+            },
+        })
+    }
+}
 
 pub(crate) fn exec<const N: usize>(
     mut reg: Registers<N>,
