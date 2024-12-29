@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use fxhash::{FxHashMap, FxHashSet};
+use fxhash::FxHashSet;
 use regex::Regex;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
@@ -48,7 +48,8 @@ struct Map {
     origin: Pos,
     target: Pos,
     depth: u32,
-    geologic_index: FxHashMap<Pos, u32>,
+    geologic_index: Vec<Option<u32>>,
+    width: usize,
 }
 
 impl Map {
@@ -58,7 +59,8 @@ impl Map {
             origin: Pos::new(0, 0),
             target: Pos::new(x, y),
             depth,
-            geologic_index: FxHashMap::default(),
+            geologic_index: vec![None; 800 * 800],
+            width: 800,
         }
     }
 
@@ -89,7 +91,12 @@ impl Map {
             Some(Pos::new(x + 1, y)),
             Some(Pos::new(x, y + 1)),
         ];
-        out.into_iter().filter_map(|p| p)
+        out.into_iter().flatten()
+    }
+
+    #[inline(always)]
+    fn to_ix(&self, pos: Pos) -> usize {
+        (pos.x() as usize) + (pos.y() as usize) * self.width
     }
 }
 
@@ -112,24 +119,25 @@ target: (\d+),(\d+)",
 }
 
 fn geologic_index(pos: Pos, map: &mut Map) -> u32 {
-    if let Some(index) = map.geologic_index.get(&pos) {
-        *index
+    let ix = map.to_ix(pos);
+    if let Some(index) = map.geologic_index[ix] {
+        index
     } else if pos == map.origin || pos == map.target {
-        map.geologic_index.insert(pos, 0);
+        map.geologic_index[ix] = Some(0);
         0
     } else {
         let x = pos.x();
         let y = pos.y();
         if x == 0 {
-            map.geologic_index.insert(pos, y * Y_MUL);
+            map.geologic_index[ix] = Some(y * Y_MUL);
             y * Y_MUL
         } else if y == 0 {
-            map.geologic_index.insert(pos, x * X_MUL);
+            map.geologic_index[ix] = Some(x * X_MUL);
             x * X_MUL
         } else {
             let left = erosion_level(Pos::new(x - 1, y), map);
             let right = erosion_level(Pos::new(x, y - 1), map);
-            map.geologic_index.insert(pos, left * right);
+            map.geologic_index[ix] = Some(left * right);
             left * right
         }
     }
@@ -169,7 +177,6 @@ fn shortest_path(map: &mut Map) -> u32 {
         if pos == map.target && equipment == Torch {
             return cost;
         }
-        // First time going here with this equipment
         if seen.insert((pos, equipment)) {
             let k = kind(pos, map);
             // We can try any other equipment, it costs 7 minutes
