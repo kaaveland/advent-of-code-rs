@@ -1,8 +1,8 @@
 use crate::elflang;
 use crate::elflang::AsmInstruction::Equal;
 use crate::elflang::Operand::Reg;
-use crate::elflang::{exec_with_ipreg, Command, DisElf, Registers};
-use anyhow::{Context, Result};
+use crate::elflang::{exec_with_ipreg, Command, DisElf, Instruction, Registers};
+use anyhow::{anyhow, Context, Result};
 use fxhash::FxHashSet;
 
 fn find_ins_reg_to_watch(program: &[Command], regs: [&str; 6]) -> Option<(usize, usize)> {
@@ -74,11 +74,11 @@ pub fn part_1(s: &str) -> Result<String> {
 // End useless section
 // 05 DisElf { result_reg: "e", asm_instruction: Set(Lit(0)) } | e = 0
 // 06 DisElf { result_reg: "f", asm_instruction: Or(Reg("e"), Lit(65536)) } | f = e | 0x10000
-// 07 DisElf { result_reg: "e", asm_instruction: Set(Lit(10704114)) } | e = 10704114
+// 07 DisElf { result_reg: "e", asm_instruction: Set(Lit(10704114)) } | e = 10704114 -- unique/random per user?
 // 08 DisElf { result_reg: "c", asm_instruction: And(Reg("f"), Lit(255)) } | c = f & 0xff
 // 09 DisElf { result_reg: "e", asm_instruction: Add(Reg("e"), Reg("c")) } | e = e + c
 // 10 DisElf { result_reg: "e", asm_instruction: And(Reg("e"), Lit(16777215)) } | e = e & 0xffffff
-// 11 DisElf { result_reg: "e", asm_instruction: Mul(Reg("e"), Lit(65899)) } | e = e * 65899
+// 11 DisElf { result_reg: "e", asm_instruction: Mul(Reg("e"), Lit(65899)) } | e = e * 65899 -- unique/random per user?
 // 12 DisElf { result_reg: "e", asm_instruction: And(Reg("e"), Lit(16777215)) } | e = e & 0xffffff
 // 13 DisElf { result_reg: "c", asm_instruction: Greater(Lit(256), Reg("f")) } | c = 256 > f
 // 14 DisElf { result_reg: "ip", asm_instruction: Add(Reg("c"), Reg("ip")) } | ip = c + ip -- skip next goto 16
@@ -105,16 +105,45 @@ pub fn part_1(s: &str) -> Result<String> {
 // Note: This is fantastically slow, but works. Should probably figure out how to write
 // this hash function in rust.
 
+/// Edit: This is the result of painstakingly trying to figure out the elflang program
+///
+/// It runs a hash function of 24 bits in a loop and puts the result in a register that it compares
+/// with register 0 (or a, in my code).
+fn rust_hash_fn(seed: usize, mul: usize, last_hash: usize) -> usize {
+    let mut current = seed;
+    let mut f = last_hash | 0x10000;
+    for _ in 0..3 {
+        current = (current + (f & 0xff)) & 0xffffff;
+        current = (current * mul) & 0xffffff;
+        f >>= 8;
+    }
+    current
+}
+
 pub fn part_2(s: &str) -> Result<String> {
-    let (ip_reg, program, watch) = setup(s)?;
-    let mut ip: usize = 0;
-    let mut registers: Registers<6> = [0usize; 6];
+    let (_, program, _) = setup(s)?;
+    // We need to find the hash seed: it is in a Set(Lit(n)) where n is quite large and does
+    // not target ip reg. In my program it is in index 7, so let's just assume that's true for
+    // everybody
+    let seed = match &program[7] {
+        Command {
+            instruction, reg_a, ..
+        } if matches!(instruction, Instruction::Seti) && *reg_a > 256 => Ok(*reg_a),
+        _ => Err(anyhow!("Unable to discover seed at location 7")),
+    }?;
+    // We need to find the multiplier used, it is in a Mul(Reg, Lit), let's assume it's on index 11
+    let mul = match &program[11] {
+        Command {
+            instruction, reg_b, ..
+        } if matches!(instruction, Instruction::Muli) && *reg_b > 256 => Ok(*reg_b),
+        _ => Err(anyhow!("Unable to discover mul at location 11")),
+    }?;
+
     let mut last = 0;
     let mut seen = FxHashSet::default();
 
     loop {
-        let n = tick_once(&mut registers, watch, &mut ip, ip_reg, &program)
-            .context("Unable to evaluate")?;
+        let n = rust_hash_fn(seed, mul, last);
         if !seen.insert(n) {
             return Ok(last.to_string());
         }
