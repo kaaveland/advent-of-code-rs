@@ -1,4 +1,5 @@
-use shared::{not_implemented, Solution};
+use shared::Solution;
+use std::string::ToString;
 
 pub mod day_01;
 pub mod day_02;
@@ -22,6 +23,9 @@ mod day_19;
 mod day_20;
 mod day_21;
 mod day_22;
+mod day_23;
+mod day_24;
+mod day_25;
 mod elflang;
 
 pub const SOLUTIONS: [Solution; 25] = [
@@ -137,17 +141,17 @@ pub const SOLUTIONS: [Solution; 25] = [
     },
     Solution {
         day_no: 23,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_23::part_1,
+        part_2: day_23::part_2,
     },
     Solution {
         day_no: 24,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_24::part_1,
+        part_2: day_24::part_2,
     },
     Solution {
         day_no: 25,
-        part_1: not_implemented,
-        part_2: not_implemented,
+        part_1: day_25::part_1,
+        part_2: |_: &str| Ok("Collect stars!".to_string()),
     },
 ];

@@ -221,9 +221,7 @@ pub fn sep(by: &str) -> impl FnMut(&str) -> IResult<&str, usize> + '_ {
 
 pub fn parse_elflang_bin_cmd(s: &str) -> IResult<&str, Command> {
     let (s, (a, b, c, d)) = tuple((
-        map_res(sep(" "), |n: usize| {
-            Ok::<Instruction, String>(n.try_into()?)
-        }),
+        map_res(sep(" "), |n: usize| n.try_into()),
         sep(" "),
         sep(" "),
         posint,
