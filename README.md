@@ -17,13 +17,13 @@ Progress
 
 These runtimes are for all the puzzles in each year, ran with `hyperfine -N --warmup 20`.
 
-- 2024: ✅ Time (mean ± σ):      51.5 ms ±   8.2 ms
-- 2023: ✅ Time (mean ± σ):     245.5 ms ±   9.5 ms
-- 2022: ✅ Time (mean ± σ):     177.2 ms ±   4.0 ms
-- 2021: ✅ Time (mean ± σ):     101.0 ms ±   2.8 ms
-- 2020: ✅ Time (mean ± σ):     601.8 ms ±  10.7 ms
-- 2019: ✅ Time (mean ± σ):     291.8 ms ±  12.3 ms
-- 2018: WIP
+- 2024: ✅ Time (mean ± σ):      51.5 ms ± 8.2 ms
+- 2023: ✅ Time (mean ± σ):     245.5 ms ± 9.5 ms
+- 2022: ✅ Time (mean ± σ):     177.2 ms ± 4.0 ms
+- 2021: ✅ Time (mean ± σ):     101.0 ms ± 2.8 ms
+- 2020: ✅ Time (mean ± σ):     601.8 ms ± 10.7 ms
+- 2019: ✅ Time (mean ± σ):     291.8 ms ± 12.3 ms
+- 2018: ✅ Time (mean ± σ):     232.7 ms ± 14.1 ms
 
 Usage
 ==
@@ -196,13 +196,16 @@ Solution comments
   the machine became more and more complex.
 - I'm quite satisfied with my modeling for [Day 24](y2019/src/day_24.rs), where I felt like I was able to
   utilize traits in a good way to achieve both reuse between part 1 and part 2 in the "right way".
-- I played [Day 25](y2019/src/day_25.rs) manually, then hardcoded the script, after my automatic program ran afoul of f. ex.
+- I played [Day 25](y2019/src/day_25.rs) manually, then hardcoded the script, after my automatic program ran afoul of f.
+  ex.
   the infinite loop, and I decided that there were too many trips to deal with.
 - [Day 22](y2019/src/day_22.rs) was a lot of fun! It was also great to have the naive implementation
   for when I needed the clever one, `quickcheck` was very helpful in assuring me that I was making progress
   and getting the same results with the clever method.
-- As usual, there's a bunch of search problems. I usually get away with a simple breadth first search or depth first search,
-  but increasingly I find that I do a lot of work to transform my part 2 into an input that will allow me to reuse my part 1
+- As usual, there's a bunch of search problems. I usually get away with a simple breadth first search or depth first
+  search,
+  but increasingly I find that I do a lot of work to transform my part 2 into an input that will allow me to reuse my
+  part 1
   code somehow. Perhaps it's about time I make some decent, reusable search implementations, but I really like that the
   programs are more or less standalone.
 
@@ -249,11 +252,14 @@ Solution comments
   data types everywhere, but discovered that Rust has const generics. The implementation is a simple Dijkstra,
   and all the complexity is in managing state transitions. In hindsight, I think it may be simpler to just represent
   state as a bytestring here.
-- [Day 5](y2021/src/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by hand to do this.
+- [Day 5](y2021/src/day_05.rs) has a much simpler solution than I wrote, I ended up solving equations more or less by
+  hand to do this.
   It is much faster than using set intersection, but really hard to read and understand why it works. Not my proudest
   moment, but it was also OK to do some simple math, I don't do a lot of this stuff for a living.
-- [Day 20](y2021/src/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a `HashMap` to
-  a `Vec`. I knew it was likely to be faster from the start, but the code is so much simpler when using a `HashMap` and I was
+- [Day 20](y2021/src/day_20.rs) I could probably revisit to optimize by changing the underlying datastructure from a
+  `HashMap` to
+  a `Vec`. I knew it was likely to be faster from the start, but the code is so much simpler when using a `HashMap` and
+  I was
   in a mood to just get it done.
 - [Day 12](y2021/src/day_12.rs) is a simple depth first search, but I was very happy with how simple
   and fast the implementation ended up being.
