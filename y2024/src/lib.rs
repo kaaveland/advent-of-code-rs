@@ -1,6 +1,7 @@
 extern crate core;
 
-use shared::{not_implemented, Solution};
+use shared::{Answer, Answer::Solution};
+use std::string::ToString;
 
 mod day_01;
 mod day_02;
@@ -28,7 +29,7 @@ mod day_23;
 mod day_24;
 mod day_25;
 
-pub const SOLUTIONS: [Solution; 25] = [
+pub const SOLUTIONS: [Answer; 25] = [
     Solution {
         day_no: 1,
         part_1: day_01::part_1,
@@ -152,6 +153,6 @@ pub const SOLUTIONS: [Solution; 25] = [
     Solution {
         day_no: 25,
         part_1: day_25::part_1,
-        part_2: not_implemented,
+        part_2: |_: &str| Ok("Collect stars".to_string()),
     },
 ];

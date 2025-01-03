@@ -1,4 +1,5 @@
-use shared::Solution;
+use shared::Answer;
+use shared::Answer::Solution;
 
 pub mod intcode;
 
@@ -28,7 +29,7 @@ pub mod day_23;
 pub mod day_24;
 pub mod day_25;
 
-pub const SOLUTIONS: [Solution; 25] = [
+pub const SOLUTIONS: [Answer; 25] = [
     Solution {
         day_no: 1,
         part_1: day_01::part_1,

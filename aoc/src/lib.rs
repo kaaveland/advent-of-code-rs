@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use itertools::Itertools;
 use rayon::prelude::*;
-use shared::{elapsed_string, Solution};
+use shared::{elapsed_string, Answer};
 use std::fs;
 use std::ops::Sub;
 use std::time::Instant;
@@ -9,7 +9,7 @@ use time::{Date, Duration, Month, OffsetDateTime};
 
 pub mod dl_data;
 
-pub const YEARS: [(u16, [Solution; 25]); 7] = [
+pub const YEARS: [(u16, [Answer; 25]); 7] = [
     (2018, y2018::SOLUTIONS),
     (2019, y2019::SOLUTIONS),
     (2020, y2020::SOLUTIONS),
@@ -41,18 +41,24 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
 
     let candidate = solution_set
         .iter()
-        .find(|sol| sol.day_no == day)
+        .enumerate()
+        .find(|(day_ix, _)| (*day_ix + 1) as u8 == day)
+        .map(|(_, sol)| sol)
         .context(format!("Error: no solution for day: {day}"))?;
     let now = Instant::now();
 
-    let p1_sol = (candidate.part_1)(content.as_str())?;
-    let p1_ts = elapsed_string(now);
-    let now = Instant::now();
-    let p2_sol = (candidate.part_2)(content.as_str())?;
-    let p2_ts = elapsed_string(now);
-    Ok(format!(
-        "Day {day} part 1: {p1_ts}\n{p1_sol}\nDay {day} part 2: {p2_ts}\n{p2_sol}\n"
-    ))
+    if let Answer::Solution { part_1, part_2, .. } = candidate {
+        let p1_sol = part_1(content.as_str())?;
+        let p1_ts = elapsed_string(now);
+        let now = Instant::now();
+        let p2_sol = part_2(content.as_str())?;
+        let p2_ts = elapsed_string(now);
+        Ok(format!(
+            "Day {day} part 1: {p1_ts}\n{p1_sol}\nDay {day} part 2: {p2_ts}\n{p2_sol}\n"
+        ))
+    } else {
+        Ok(format!("Day {day} not implemented yet"))
+    }
 }
 
 pub fn timed_all_solutions(year: u16) -> Result<()> {
@@ -70,14 +76,16 @@ pub fn timed_all_solutions(year: u16) -> Result<()> {
 
     let solution_set: Vec<_> = solution_set
         .iter()
-        .filter(|sol| {
-            Date::from_calendar_date(year as i32, Month::December, sol.day_no).unwrap() <= today
+        .enumerate()
+        .filter(|(day_ix, _)| {
+            Date::from_calendar_date(year as i32, Month::December, (*day_ix + 1) as u8).unwrap()
+                <= today
         })
         .collect();
 
     solution_set
         .into_par_iter()
-        .map(|sol| (sol.day_no, timed_solution(year, sol.day_no)))
+        .map(|(day_ix, _)| (day_ix + 1, timed_solution(year, (day_ix + 1) as u8)))
         .collect_into_vec(&mut outputs);
 
     let ts = elapsed_string(now);

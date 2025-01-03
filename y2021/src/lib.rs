@@ -1,4 +1,4 @@
-use shared::Solution;
+use shared::{Answer, Answer::Solution};
 
 pub mod day_01;
 pub mod day_02;
@@ -26,7 +26,7 @@ pub mod day_23;
 pub mod day_24;
 pub mod day_25;
 
-pub const SOLUTIONS: [Solution; 25] = [
+pub const SOLUTIONS: [Answer; 25] = [
     Solution {
         day_no: 1,
         part_1: day_01::part_1,

@@ -1,10 +1,13 @@
 use anyhow::Result;
 use std::time::Instant;
 
-pub struct Solution {
-    pub day_no: u8,
-    pub part_1: fn(&str) -> Result<String>,
-    pub part_2: fn(&str) -> Result<String>,
+pub enum Answer {
+    Solution {
+        day_no: u8,
+        part_1: fn(&str) -> Result<String>,
+        part_2: fn(&str) -> Result<String>,
+    },
+    NotImplementedYet,
 }
 
 pub fn not_implemented(_: &str) -> Result<String> {

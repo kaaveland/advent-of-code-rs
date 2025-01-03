@@ -1,4 +1,5 @@
-use shared::Solution;
+use shared::Answer;
+use shared::Answer::Solution;
 use std::string::ToString;
 
 pub mod day_01;
@@ -28,7 +29,7 @@ mod day_24;
 mod day_25;
 mod elflang;
 
-pub const SOLUTIONS: [Solution; 25] = [
+pub const SOLUTIONS: [Answer; 25] = [
     Solution {
         day_no: 1,
         part_1: day_01::part_1,

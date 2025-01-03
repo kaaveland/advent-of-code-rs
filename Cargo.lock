@@ -2163,6 +2163,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
 
 [[package]]
+name = "y2015"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "fxhash",
+ "itertools 0.13.0",
+ "nom",
+ "quickcheck",
+ "rayon",
+ "regex",
+ "shared",
+]
+
+[[package]]
 name = "y2018"
 version = "0.1.0"
 dependencies = [
@@ -2171,7 +2186,6 @@ dependencies = [
  "fxhash",
  "itertools 0.13.0",
  "nom",
- "once_cell",
  "quickcheck",
  "rayon",
  "regex",

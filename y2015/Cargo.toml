@@ -1,7 +1,13 @@
 [package]
-name = "y2018"
+name = "y2015"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+license-file.workspace = true
+readme.workspace = true
+repository.workspace = true
 
 [dependencies]
 shared = { path = "../shared" }
@@ -15,3 +21,6 @@ chrono.workspace = true
 
 [dev-dependencies]
 quickcheck.workspace = true
+
+[lints]
+workspace = true
