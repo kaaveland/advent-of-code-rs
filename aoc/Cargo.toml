@@ -24,9 +24,3 @@ time = "0.3.37"
 [dependencies.clap]
 version = "4"
 
-[dev-dependencies]
-criterion = "0.5.1"
-
-[[bench]]
-name = "aoc_bench"
-harness = false

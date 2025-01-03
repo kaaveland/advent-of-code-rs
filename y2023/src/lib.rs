@@ -27,127 +27,102 @@ mod day_25;
 use shared::{Answer, Answer::Solution};
 pub const SOLUTIONS: [Answer; 25] = [
     Solution {
-        day_no: 1,
         part_1: day_01::part_1,
         part_2: day_01::part_2,
     },
     Solution {
-        day_no: 2,
         part_1: day_02::part_1,
         part_2: day_02::part_2,
     },
     Solution {
-        day_no: 3,
         part_1: day_03::part_1,
         part_2: day_03::part_2,
     },
     Solution {
-        day_no: 4,
         part_1: day_04::part_1,
         part_2: day_04::part_2,
     },
     Solution {
-        day_no: 5,
         part_1: day_05::part_1,
         part_2: day_05::part_2,
     },
     Solution {
-        day_no: 6,
         part_1: day_06::part_1,
         part_2: day_06::part_2,
     },
     Solution {
-        day_no: 7,
         part_1: day_07::part_1,
         part_2: day_07::part_2,
     },
     Solution {
-        day_no: 8,
         part_1: day_08::part_1,
         part_2: day_08::part_2,
     },
     Solution {
-        day_no: 9,
         part_1: day_09::part_1,
         part_2: day_09::part_2,
     },
     Solution {
-        day_no: 10,
         part_1: day_10::part_1,
         part_2: day_10::part_2,
     },
     Solution {
-        day_no: 11,
         part_1: day_11::part_1,
         part_2: day_11::part_2,
     },
     Solution {
-        day_no: 12,
         part_1: day_12::part_1,
         part_2: day_12::part_2,
     },
     Solution {
-        day_no: 13,
         part_1: day_13::part_1,
         part_2: day_13::part_2,
     },
     Solution {
-        day_no: 14,
         part_1: day_14::part_1,
         part_2: day_14::part_2,
     },
     Solution {
-        day_no: 15,
         part_1: day_15::part_1,
         part_2: day_15::part_2,
     },
     Solution {
-        day_no: 16,
         part_1: day_16::part_1,
         part_2: day_16::part_2,
     },
     Solution {
-        day_no: 17,
         part_1: day_17::part_1,
         part_2: day_17::part_2,
     },
     Solution {
-        day_no: 18,
         part_1: day_18::part_1,
         part_2: day_18::part_2,
     },
     Solution {
-        day_no: 19,
         part_1: day_19::part_1,
         part_2: day_19::part_2,
     },
     Solution {
-        day_no: 20,
         part_1: day_20::part_1,
         part_2: day_20::part_2,
     },
     Solution {
-        day_no: 21,
         part_1: day_21::part_1,
         part_2: day_21::part_2,
     },
     Solution {
-        day_no: 22,
         part_1: day_22::part_1,
         part_2: day_22::part_2,
     },
     Solution {
-        day_no: 23,
         part_1: day_23::part_1,
         part_2: day_23::part_2,
     },
     Solution {
-        day_no: 24,
         part_1: day_24::part_1,
         part_2: day_24::part_2,
     },
     Solution {
-        day_no: 25,
         part_1: day_25::part_1,
         part_2: day_25::part_2,
     },

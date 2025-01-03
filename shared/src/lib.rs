@@ -3,7 +3,6 @@ use std::time::Instant;
 
 pub enum Answer {
     Solution {
-        day_no: u8,
         part_1: fn(&str) -> Result<String>,
         part_2: fn(&str) -> Result<String>,
     },
