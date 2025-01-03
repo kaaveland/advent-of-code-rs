@@ -9,10 +9,6 @@ pub enum Answer {
     NotImplementedYet,
 }
 
-pub fn not_implemented(_: &str) -> Result<String> {
-    Ok("Not implemented yet".to_string())
-}
-
 pub fn elapsed_string(now: Instant) -> String {
     if now.elapsed().as_millis() > 2 {
         format!("{}ms", now.elapsed().as_millis())

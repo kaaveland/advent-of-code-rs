@@ -9,7 +9,8 @@ use time::{Date, Duration, Month, OffsetDateTime};
 
 pub mod dl_data;
 
-pub const YEARS: [(u16, [Answer; 25]); 7] = [
+pub const YEARS: [(u16, [Answer; 25]); 8] = [
+    (2015, y2015::SOLUTIONS),
     (2018, y2018::SOLUTIONS),
     (2019, y2019::SOLUTIONS),
     (2020, y2020::SOLUTIONS),
@@ -57,7 +58,7 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
             "Day {day} part 1: {p1_ts}\n{p1_sol}\nDay {day} part 2: {p2_ts}\n{p2_sol}\n"
         ))
     } else {
-        Ok(format!("Day {day} not implemented yet"))
+        Ok(format!("Day {day} not implemented yet\n"))
     }
 }
 

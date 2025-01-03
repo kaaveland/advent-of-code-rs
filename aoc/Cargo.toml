@@ -11,6 +11,7 @@ rayon.workspace = true
 fxhash.workspace = true
 reqwest.workspace = true
 shared = { path = "../shared" }
+y2015 = { path = "../y2015" }
 y2018 = { path = "../y2018" }
 y2019 = { path = "../y2019" }
 y2020 = { path = "../y2020" }

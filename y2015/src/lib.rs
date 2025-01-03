@@ -1,1 +1,30 @@
+use shared::Answer;
+use shared::Answer::NotImplementedYet;
 
+pub const SOLUTIONS: [Answer; 25] = [
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+    NotImplementedYet,
+];
