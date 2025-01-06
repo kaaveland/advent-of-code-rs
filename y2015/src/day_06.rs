@@ -90,7 +90,6 @@ fn grade_segments<S: Copy + Default, F: Fn(S, Command) -> S + Sync, G: Fn(&[S]) 
         .sum()
 }
 
-#[inline]
 fn p1_state_change(state: bool, command: Command) -> bool {
     match command {
         Command::On => true,
@@ -99,7 +98,6 @@ fn p1_state_change(state: bool, command: Command) -> bool {
     }
 }
 
-#[inline]
 fn p1_score(seg: &[bool]) -> usize {
     seg.iter().filter(|b| **b).count()
 }
@@ -112,7 +110,6 @@ fn p2_state_change(state: u16, command: Command) -> u16 {
     }
 }
 
-#[inline]
 fn p2_score(seg: &[u16]) -> usize {
     let mut s = 0usize;
     for state in seg {
