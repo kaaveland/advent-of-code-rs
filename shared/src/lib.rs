@@ -1,6 +1,10 @@
 use anyhow::Result;
 use std::time::Instant;
 
+pub fn not_implemented(_s: &str) -> Result<String> {
+    Ok("Not implemented yet".to_string())
+}
+
 pub enum Answer {
     Solution {
         part_1: fn(&str) -> Result<String>,
