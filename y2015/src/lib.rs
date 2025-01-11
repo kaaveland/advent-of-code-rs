@@ -1,5 +1,5 @@
-use shared::Answer;
 use shared::Answer::{NotImplementedYet, Solution};
+use shared::{not_implemented, Answer};
 
 mod day_01;
 mod day_02;
@@ -13,6 +13,7 @@ mod day_09;
 mod day_10;
 mod day_11;
 mod day_12;
+mod day_13;
 
 pub const SOLUTIONS: [Answer; 25] = [
     Solution {
@@ -63,7 +64,10 @@ pub const SOLUTIONS: [Answer; 25] = [
         part_1: day_12::part_1,
         part_2: day_12::part_2,
     },
-    NotImplementedYet,
+    Solution {
+        part_1: day_13::part_1,
+        part_2: day_13::part_2,
+    },
     NotImplementedYet,
     NotImplementedYet,
     NotImplementedYet,
