@@ -48,7 +48,7 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
         .context(format!("Error: no solution for day: {day}"))?;
     let now = Instant::now();
 
-    if let Answer::Solution { part_1, part_2, .. } = candidate {
+    if let Answer::SolvedBoth { part_1, part_2, .. } = candidate {
         let p1_sol = part_1(content.as_str())?;
         let p1_ts = elapsed_string(now);
         let now = Instant::now();
@@ -56,6 +56,13 @@ pub fn timed_solution(year: u16, day: u8) -> Result<String> {
         let p2_ts = elapsed_string(now);
         Ok(format!(
             "Day {day} part 1: {p1_ts}\n{p1_sol}\nDay {day} part 2: {p2_ts}\n{p2_sol}\n"
+        ))
+    } else if let Answer::SolvedOne { part_1 } = candidate {
+        let p1_sol = part_1(content.as_str())?;
+        let p1_ts = elapsed_string(now);
+
+        Ok(format!(
+            "Day {day} part 1: {p1_ts}\n{p1_sol}\nDay {day} part 2: Not implemented yet.\n"
         ))
     } else {
         Ok(format!("Day {day} not implemented yet\n"))

@@ -6,9 +6,12 @@ pub fn not_implemented(_s: &str) -> Result<String> {
 }
 
 pub enum Answer {
-    Solution {
+    SolvedBoth {
         part_1: fn(&str) -> Result<String>,
         part_2: fn(&str) -> Result<String>,
+    },
+    SolvedOne {
+        part_1: fn(&str) -> Result<String>,
     },
     NotImplementedYet,
 }
