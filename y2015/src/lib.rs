@@ -1,5 +1,5 @@
-use shared::Answer::{NotImplementedYet, SolvedBoth};
-use shared::{not_implemented, Answer};
+use shared::Answer;
+use shared::Answer::SolvedBoth;
 
 mod day_01;
 mod day_02;
@@ -25,6 +25,7 @@ mod day_21;
 mod day_22;
 mod day_23;
 mod day_24;
+mod day_25;
 
 pub const SOLUTIONS: [Answer; 25] = [
     SolvedBoth {
@@ -123,5 +124,8 @@ pub const SOLUTIONS: [Answer; 25] = [
         part_1: day_24::part_1,
         part_2: day_24::part_2,
     },
-    NotImplementedYet,
+    SolvedBoth {
+        part_1: day_25::part_1,
+        part_2: day_25::part_2,
+    },
 ];
