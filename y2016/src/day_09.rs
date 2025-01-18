@@ -40,6 +40,7 @@ pub fn part_1(s: &str) -> anyhow::Result<String> {
             len += rec.len() * repeats;
         } else {
             as_str = &as_str[1..];
+            len += 1;
         }
     }
     Ok(len.to_string())

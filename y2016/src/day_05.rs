@@ -65,13 +65,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_examples() {
-        assert_eq!(md5check("abc", 3231929).map(|(b, _)| b), Some(b'1'));
-        assert_eq!(md5check("abc", 5017308).map(|(b, _)| b), Some(b'8'));
-        assert_eq!(md5check("abc", 5278568).map(|(b, _)| b), Some(b'f'));
-    }
-
-    #[test]
     fn test_example() {
         assert_eq!(part_1("abc").unwrap().as_str(), "18f47a30");
         assert_eq!(part_2("abc").unwrap().as_str(), "05ace8e3");
