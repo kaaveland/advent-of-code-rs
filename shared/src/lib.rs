@@ -5,6 +5,7 @@ pub fn not_implemented(_s: &str) -> Result<String> {
     Ok("Not implemented yet".to_string())
 }
 
+#[derive(Default)]
 pub enum Answer {
     SolvedBoth {
         part_1: fn(&str) -> Result<String>,
@@ -13,6 +14,7 @@ pub enum Answer {
     SolvedOne {
         part_1: fn(&str) -> Result<String>,
     },
+    #[default]
     NotImplementedYet,
 }
 

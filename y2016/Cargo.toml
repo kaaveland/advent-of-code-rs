@@ -1,0 +1,27 @@
+[package]
+name = "y2016"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license-file.workspace = true
+readme.workspace = true
+repository.workspace = true
+
+[dependencies]
+shared = { path = "../shared" }
+anyhow.workspace = true
+regex.workspace = true
+itertools.workspace = true
+rayon.workspace = true
+fxhash.workspace = true
+nom.workspace = true
+chrono.workspace = true
+md5 = "0.7.0"
+serde_json = "1.0.135"
+
+[dev-dependencies]
+quickcheck.workspace = true
+
+[lints]
+workspace = true

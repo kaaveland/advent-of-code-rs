@@ -103,14 +103,13 @@ dependencies = [
  "anyhow",
  "clap",
  "dirs",
- "fxhash",
  "itertools",
  "rayon",
- "regex",
  "reqwest",
  "shared",
  "time",
  "y2015",
+ "y2016",
  "y2018",
  "y2019",
  "y2020",
@@ -1981,6 +1980,23 @@ checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
 
 [[package]]
 name = "y2015"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "fxhash",
+ "itertools",
+ "md5",
+ "nom",
+ "quickcheck",
+ "rayon",
+ "regex",
+ "serde_json",
+ "shared",
+]
+
+[[package]]
+name = "y2016"
 version = "0.1.0"
 dependencies = [
  "anyhow",
