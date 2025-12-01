@@ -13,12 +13,12 @@ enum Segment<'a> {
     NotEnclosed(&'a str),
 }
 
-fn parse_enclosed(s: &str) -> IResult<&str, Segment> {
+fn parse_enclosed(s: &str) -> IResult<&str, Segment<'_>> {
     let (s, enclosed) = delimited(char('['), alpha1, char(']'))(s)?;
     Ok((s, Segment::Enclosed(enclosed)))
 }
 
-fn parse_open(s: &str) -> IResult<&str, Segment> {
+fn parse_open(s: &str) -> IResult<&str, Segment<'_>> {
     let (s, open) = recognize(many1(none_of("\n[ ")))(s)?;
     Ok((s, Segment::NotEnclosed(open)))
 }

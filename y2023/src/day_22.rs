@@ -119,7 +119,7 @@ fn settle(bricks: &mut Vec<Brick>) {
 }
 
 type BrickDependency<'a> = Map<&'a Brick, Vec<&'a Brick>>;
-fn brick_dependencies(bricks: &[Brick]) -> (BrickDependency, BrickDependency) {
+fn brick_dependencies(bricks: &[Brick]) -> (BrickDependency<'_>, BrickDependency<'_>) {
     let mut rests_on = Map::default();
     let mut supported_by: Map<_, Vec<_>> = Map::default();
     for brick in bricks.iter() {

@@ -22,7 +22,7 @@ pub fn part_2(input: &str) -> Result<String> {
 
 type Example<'a> = (Vec<&'a [u8]>, Vec<&'a [u8]>);
 
-fn parse(input: &str) -> Result<Vec<Example>> {
+fn parse(input: &str) -> Result<Vec<Example<'_>>> {
     let lines = input.lines().filter(|line| !line.is_empty());
     lines
         .map(|line| {

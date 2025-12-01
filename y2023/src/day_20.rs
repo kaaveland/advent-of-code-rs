@@ -60,14 +60,14 @@ impl<'a> MachineSimulation<'a> {
     }
 }
 
-fn parse_machine(s: &str) -> IResult<&str, Machine> {
+fn parse_machine(s: &str) -> IResult<&str, Machine<'_>> {
     let conj = value(MachineKind::Conj, char('&'));
     let flip_flop = value(MachineKind::FlipFlop, char('%'));
     let broadcast = success(MachineKind::Broadcast);
     let (s, (kind, name)) = pair(alt((conj, flip_flop, broadcast)), alpha1)(s)?;
     Ok((s, Machine { kind, name }))
 }
-fn parse_line(s: &str) -> IResult<&str, (Machine, Vec<&str>)> {
+fn parse_line(s: &str) -> IResult<&str, (Machine<'_>, Vec<&str>)> {
     separated_pair(
         parse_machine,
         tag(" -> "),
@@ -75,13 +75,13 @@ fn parse_line(s: &str) -> IResult<&str, (Machine, Vec<&str>)> {
     )(s)
 }
 
-fn parse(s: &str) -> Result<Vec<(Machine, Vec<&str>)>> {
+fn parse(s: &str) -> Result<Vec<(Machine<'_>, Vec<&str>)>> {
     Ok(separated_list1(line_ending, parse_line)(s)
         .map_err(|err| anyhow!("{err}"))?
         .1)
 }
 
-fn to_sim(s: &str) -> Result<Map<&str, MachineSimulation>> {
+fn to_sim(s: &str) -> Result<Map<&str, MachineSimulation<'_>>> {
     let machines = parse(s)?;
     let mut map = Map::default();
     let mut dest_to_source: Map<_, Vec<_>> = Map::default();

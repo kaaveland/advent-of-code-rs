@@ -33,15 +33,15 @@ fn posint(s: &str) -> IResult<&str, u32> {
     map_res(digit1, |s: &str| s.parse())(s)
 }
 
-fn parse_atom(s: &str) -> IResult<&str, Atom> {
+fn parse_atom(s: &str) -> IResult<&str, Atom<'_>> {
     alt((map(posint, Atom::Lit), map(alphanumeric1, Atom::Ref)))(s)
 }
 
-fn parse_not(s: &str) -> IResult<&str, Expr> {
+fn parse_not(s: &str) -> IResult<&str, Expr<'_>> {
     preceded(tag("NOT "), map(parse_atom, Expr::Not))(s)
 }
 
-fn parse_ref(s: &str) -> IResult<&str, Expr> {
+fn parse_ref(s: &str) -> IResult<&str, Expr<'_>> {
     map(parse_atom, Expr::Atom)(s)
 }
 
@@ -62,7 +62,7 @@ where
     )
 }
 
-fn parse_expr(s: &str) -> IResult<&str, Expr> {
+fn parse_expr(s: &str) -> IResult<&str, Expr<'_>> {
     alt((
         parse_not,
         parse_binop("AND", Expr::And),
@@ -73,12 +73,12 @@ fn parse_expr(s: &str) -> IResult<&str, Expr> {
     ))(s)
 }
 
-fn parse_wire(s: &str) -> IResult<&str, Wire> {
+fn parse_wire(s: &str) -> IResult<&str, Wire<'_>> {
     let (s, (expr, wire)) = separated_pair(parse_expr, tag(" -> "), alphanumeric1)(s)?;
     Ok((s, Wire { wire, expr }))
 }
 
-fn parse(s: &str) -> anyhow::Result<Vec<Wire>> {
+fn parse(s: &str) -> anyhow::Result<Vec<Wire<'_>>> {
     Ok(separated_list1(char('\n'), parse_wire)(s)
         .map_err(|err| anyhow!("{err}"))?
         .1)
@@ -140,7 +140,7 @@ fn evaluate<'a>(
     }
 }
 
-fn read(s: &str) -> anyhow::Result<FxHashMap<&str, Expr>> {
+fn read(s: &str) -> anyhow::Result<FxHashMap<&str, Expr<'_>>> {
     let wires = parse(s)?;
     let mut m = FxHashMap::default();
     for w in wires {

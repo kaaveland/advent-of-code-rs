@@ -28,7 +28,7 @@ fn parse_food_list(i: &str) -> IResult<&str, Vec<&str>> {
     many1(parse_food)(i)
 }
 
-fn parse_line(i: &str) -> Result<Food> {
+fn parse_line(i: &str) -> Result<Food<'_>> {
     pair(parse_food_list, parse_allergen_list)(i)
         .finish()
         .map_err(|e| anyhow!("Unable to parse line due to {e:?}"))
@@ -111,7 +111,7 @@ fn solve_constraints<'a>(foods: &'a Vec<Food>) -> FxHashMap<&'a str, FxHashSet<&
     allergens_to_sources
 }
 
-fn parse(input: &str) -> Result<Vec<Food>> {
+fn parse(input: &str) -> Result<Vec<Food<'_>>> {
     input
         .lines()
         .filter(|line| !line.is_empty())

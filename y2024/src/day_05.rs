@@ -13,7 +13,7 @@ struct Update<'a> {
     id: &'a str,
 }
 
-fn parse(input: &str) -> anyhow::Result<(Rules, Vec<Vec<Update>>)> {
+fn parse(input: &str) -> anyhow::Result<(Rules<'_>, Vec<Vec<Update<'_>>>)> {
     let (rules, updates) = input.split_once("\n\n").context("Malformed input)")?;
     let rules = Rules {
         rules: rules.lines().map(|l| l.trim()).collect(),

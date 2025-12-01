@@ -104,7 +104,7 @@ fn parse_bp_line(bp: &str) -> Result<(i32, Blueprint)> {
     let name_part = parts.next().context("Needed blueprint name")?;
     let id_s = name_part
         .split(' ')
-        .last()
+        .next_back()
         .context("Needed blueprint name")?;
     let id = id_s.parse()?;
     let bp_part = parts.next().context("Needed blueprint values part")?;

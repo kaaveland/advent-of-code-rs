@@ -27,7 +27,7 @@ fn parse_cost(i: &str) -> IResult<&str, HashMap<&str, i64>> {
     Ok((i, cost.into_iter().collect()))
 }
 
-fn parse_reaction(i: &str) -> IResult<&str, Reaction> {
+fn parse_reaction(i: &str) -> IResult<&str, Reaction<'_>> {
     let (i, cost) = parse_cost(i)?;
     let (i, _) = tag(" => ")(i)?;
     let (i, (produces, volume)) = parse_mat(i)?;
@@ -41,7 +41,7 @@ fn parse_reaction(i: &str) -> IResult<&str, Reaction> {
     ))
 }
 
-fn parse(i: &str) -> Result<HashMap<&str, Reaction>> {
+fn parse(i: &str) -> Result<HashMap<&str, Reaction<'_>>> {
     let (_, reactions) =
         separated_list1(tag("\n"), parse_reaction)(i).map_err(|e| anyhow!("{e}"))?;
     Ok(reactions.into_iter().map(|r| (r.produces, r)).collect())

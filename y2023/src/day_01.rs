@@ -6,7 +6,7 @@ pub fn part_1(input: &str) -> Result<String> {
         .map(|line| {
             let mut digits = line.bytes().filter(|ch| ch.is_ascii_digit());
             let f = digits.next().context("No digit in line")?;
-            let l = digits.last().unwrap_or(f);
+            let l = digits.next_back().unwrap_or(f);
             let n = (f - b'0') * 10 + (l - b'0');
             Ok(n as i32)
         })

@@ -131,7 +131,7 @@ impl<const N: usize> LinearShuffle<N> {
             LinearShuffle::default()
         } else if times == 1 {
             self
-        } else if times % 2 == 0 {
+        } else if times.is_multiple_of(2) {
             self.compose(self).repeat(times / 2)
         } else {
             self.compose(self.compose(self).repeat(times / 2))

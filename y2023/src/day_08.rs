@@ -26,14 +26,14 @@ struct Crossroads<'a> {
     left: &'a str,
     right: &'a str,
 }
-fn parse_crossroad(s: &str) -> IResult<&str, Crossroads> {
+fn parse_crossroad(s: &str) -> IResult<&str, Crossroads<'_>> {
     let dirs = separated_pair(alphanumeric1, tag(", "), alphanumeric1);
     let dirs = delimited(tag("("), dirs, tag(")"));
     let both = separated_pair(alphanumeric1, tag(" = "), dirs);
     map(both, |(at, (left, right))| Crossroads { at, left, right })(s)
 }
 
-fn parse(s: &str) -> IResult<&str, (Vec<Dir>, Vec<Crossroads>)> {
+fn parse(s: &str) -> IResult<&str, (Vec<Dir>, Vec<Crossroads<'_>>)> {
     let (s, (dirs, roads)) = pair(
         terminated(parse_dirs, tag("\n")),
         separated_list1(tag("\n"), parse_crossroad),
@@ -76,7 +76,7 @@ fn solve<'a>(
     unreachable!()
 }
 
-fn prepare(s: &str) -> Result<(CrossroadsMap, Vec<Dir>, Vec<Crossroads>)> {
+fn prepare(s: &str) -> Result<(CrossroadsMap, Vec<Dir>, Vec<Crossroads<'_>>)> {
     let (_, (dirs, roads)) = parse(s).map_err(|err| anyhow!("{err}"))?;
     let map = assemble_map(&roads);
     Ok((map, dirs, roads))

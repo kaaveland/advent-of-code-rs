@@ -73,7 +73,7 @@ fn reduce(n: &mut Vec<(u32, u32)>, pos: usize) {
         let (num, depth) = n[i];
         if num >= 10 {
             n[i] = (num / 2, depth + 1);
-            n.insert(i + 1, ((num + 1) / 2, depth + 1));
+            n.insert(i + 1, (num.div_ceil(2), depth + 1));
             return reduce(n, i);
         }
     }

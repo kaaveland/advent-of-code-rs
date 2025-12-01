@@ -9,16 +9,17 @@ use time::{Date, Duration, Month, OffsetDateTime};
 
 pub mod dl_data;
 
-pub const YEARS: [(u16, [Answer; 25]); 9] = [
-    (2015, y2015::SOLUTIONS),
-    (2016, y2016::SOLUTIONS),
-    (2018, y2018::SOLUTIONS),
-    (2019, y2019::SOLUTIONS),
-    (2020, y2020::SOLUTIONS),
-    (2021, y2021::SOLUTIONS),
-    (2022, y2022::SOLUTIONS),
-    (2023, y2023::SOLUTIONS),
-    (2024, y2024::SOLUTIONS),
+pub const YEARS: &[(u16, &[Answer])] = &[
+    (2015, &y2015::SOLUTIONS),
+    (2016, &y2016::SOLUTIONS),
+    (2018, &y2018::SOLUTIONS),
+    (2019, &y2019::SOLUTIONS),
+    (2020, &y2020::SOLUTIONS),
+    (2021, &y2021::SOLUTIONS),
+    (2022, &y2022::SOLUTIONS),
+    (2023, &y2023::SOLUTIONS),
+    (2024, &y2024::SOLUTIONS),
+    (2025, y2025::SOLUTIONS),
 ];
 
 pub fn available_years() -> Vec<u16> {

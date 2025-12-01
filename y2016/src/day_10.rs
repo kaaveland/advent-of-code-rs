@@ -153,7 +153,7 @@ value 2 goes to bot 2
 
     #[test]
     fn check_parse_bot() {
-        let (s, b) = parse_bot("bot 0 gives low to output 2 and high to output 0").unwrap();
+        let (s, _) = parse_bot("bot 0 gives low to output 2 and high to output 0").unwrap();
         assert!(s.is_empty());
     }
 

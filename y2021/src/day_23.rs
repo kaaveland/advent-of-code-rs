@@ -184,7 +184,7 @@ fn from_hallway_to_cave<const N: usize>(
                 .enumerate()
                 .filter(|(_, inhab)| inhab.empty())
                 .map(|(i, _)| i)
-                .last()
+                .next_back()
                 .unwrap();
             let cost = (hallway_tiles + 1 + place) * tile_cost;
             moves.push((

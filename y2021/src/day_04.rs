@@ -66,6 +66,7 @@ fn parse(input: &str) -> Result<(Vec<u16>, Vec<Board>)> {
 }
 
 fn is_winning_board(board: &Board) -> bool {
+    #[allow(clippy::needless_range_loop)] // I think readability suffers when pleasing clippy here.
     for row_colno in 0..5 {
         let row = &board[row_colno].iter().all(|c| c.is_marked());
         let col = (0..5)

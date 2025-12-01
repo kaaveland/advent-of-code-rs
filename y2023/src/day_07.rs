@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 const CARDS_BY_STRENGTH: &[u8; 13] = b"AKQJT98765432";
 
 fn parse_hand(line: &str) -> Result<([u8; 5], i32)> {
-    let hand = line[..5].as_bytes();
+    let hand = &line.as_bytes()[..5];
     let mut out = [0; 5];
     for (i, b) in hand.iter().enumerate() {
         if CARDS_BY_STRENGTH.contains(b) {

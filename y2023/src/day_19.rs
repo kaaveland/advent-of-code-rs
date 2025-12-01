@@ -66,7 +66,7 @@ fn parse_attribute(s: &str) -> IResult<&str, Attribute> {
     };
     Ok((s, a))
 }
-fn parse_destination(s: &str) -> IResult<&str, Destination> {
+fn parse_destination(s: &str) -> IResult<&str, Destination<'_>> {
     alt((
         map(char('A'), |_| Destination::Accept),
         map(char('R'), |_| Destination::Reject),
@@ -78,7 +78,7 @@ struct Rule<'a> {
     rule: WorkflowRule,
     dest: Destination<'a>,
 }
-fn parse_workflow_rule(s: &str) -> IResult<&str, Rule> {
+fn parse_workflow_rule(s: &str) -> IResult<&str, Rule<'_>> {
     let condition_rule = map(
         tuple((
             parse_attribute,
@@ -110,7 +110,7 @@ struct Workflow<'a> {
     rules: Vec<Rule<'a>>,
 }
 
-fn parse_workflow(s: &str) -> IResult<&str, Workflow> {
+fn parse_workflow(s: &str) -> IResult<&str, Workflow<'_>> {
     let (s, name) = alpha1(s)?;
     let (s, rules) = delimited(
         char('{'),
@@ -120,7 +120,7 @@ fn parse_workflow(s: &str) -> IResult<&str, Workflow> {
     Ok((s, Workflow { name, rules }))
 }
 
-fn parse(s: &str) -> Result<(Map<&str, Workflow>, Vec<Part>)> {
+fn parse(s: &str) -> Result<(Map<&str, Workflow<'_>>, Vec<Part>)> {
     Ok(separated_pair(
         map(separated_list1(char('\n'), parse_workflow), by_name),
         tag("\n\n"),
@@ -130,7 +130,7 @@ fn parse(s: &str) -> Result<(Map<&str, Workflow>, Vec<Part>)> {
     .1)
 }
 
-fn by_name(workflows: Vec<Workflow>) -> Map<&str, Workflow> {
+fn by_name(workflows: Vec<Workflow<'_>>) -> Map<&str, Workflow<'_>> {
     workflows.into_iter().map(|wf| (wf.name, wf)).collect()
 }
 
@@ -221,7 +221,7 @@ impl WorkflowRule {
 }
 
 impl Workflow<'_> {
-    fn apply_to(&self, part: &Part) -> Option<Destination> {
+    fn apply_to(&self, part: &Part) -> Option<Destination<'_>> {
         for workflow_rule in self.rules.iter() {
             if workflow_rule.rule.applies_to(part) {
                 return Some(workflow_rule.dest);
@@ -229,7 +229,7 @@ impl Workflow<'_> {
         }
         None
     }
-    fn split_range(&self, part: &PartRange) -> Vec<(Destination, PartRange)> {
+    fn split_range(&self, part: &PartRange) -> Vec<(Destination<'_>, PartRange)> {
         let mut o = vec![];
         let mut r = *part;
         for workflow_rule in self.rules.iter() {

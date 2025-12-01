@@ -96,8 +96,8 @@ fn run(program: &[Instruction], initial_a: usize) -> (usize, usize) {
         ix = match instruction {
             Jump(Forward(dx)) => ix + dx,
             Jump(Backward(dx)) => ix - dx,
-            Jie(A, Forward(dx)) if a % 2 == 0 => ix + dx,
-            Jie(A, Backward(dx)) if a % 2 == 0 => ix - dx,
+            Jie(A, Forward(dx)) if a.is_multiple_of(2) => ix + dx,
+            Jie(A, Backward(dx)) if a.is_multiple_of(2) => ix - dx,
             Jie(B, Forward(dx)) if b % 2 == 0 => ix + dx,
             Jie(B, Backward(dx)) if b % 2 == 0 => ix - dx,
             Jio(A, Forward(dx)) if a == 1 => ix + dx,

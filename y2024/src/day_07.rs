@@ -63,12 +63,14 @@ fn concat(left: u64, right: u64) -> u64 {
 
 pub fn part_1(input: &str) -> anyhow::Result<String> {
     let equations = parse_equations(input)?;
+    #[allow(clippy::useless_vec)] // does not actually compile if you remove vec!
     let n = sum_reducible(&equations, &vec![|x, y| x * y, (|x, y| x + y)]);
     Ok(format!("{n}"))
 }
 
 pub fn part_2(input: &str) -> anyhow::Result<String> {
     let equations = parse_equations(input)?;
+    #[allow(clippy::useless_vec)] // does not actually compile if you remove vec!
     let n = sum_reducible(
         &equations,
         &vec![|x, y| x * y, |x, y| x + y, |x, y| concat(x, y)],

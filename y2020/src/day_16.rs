@@ -35,7 +35,7 @@ fn parse_column_range(line: &str) -> Result<(&str, [RangeInclusive<u16>; 2])> {
     Ok((name, [parse_range(first)?, parse_range(second)?]))
 }
 
-fn parse_column_ranges(block: &str) -> Result<ColumnRanges> {
+fn parse_column_ranges(block: &str) -> Result<ColumnRanges<'_>> {
     let input = block
         .lines()
         .filter(|line| !line.is_empty())
@@ -65,7 +65,7 @@ fn parse_ticket_block(block: &str) -> Result<Vec<Ticket>> {
         .collect()
 }
 
-fn parse_input(input: &str) -> Result<Problem> {
+fn parse_input(input: &str) -> Result<Problem<'_>> {
     let ctx = || anyhow!("Input too short: {input}");
     let mut input = input.split("\n\n");
     let ranges = input

@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use itertools::Itertools;
 use rayon::prelude::*;
-use std::iter::repeat;
 
 const BASE_PATTERN: [i32; 4] = [0, 1, 0, -1];
 
@@ -9,7 +8,7 @@ fn pattern(repeats: usize) -> impl Iterator<Item = i32> {
     let base = BASE_PATTERN
         .iter()
         .copied()
-        .flat_map(move |n| repeat(n).take(repeats))
+        .flat_map(move |n| std::iter::repeat_n(n, repeats))
         .cycle();
     base.skip(1)
 }

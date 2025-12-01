@@ -45,7 +45,7 @@ fn parse_conversion(s: &str) -> IResult<&str, Conversion> {
     ))
 }
 
-fn parse_map(s: &str) -> IResult<&str, Mapping> {
+fn parse_map(s: &str) -> IResult<&str, Mapping<'_>> {
     let name_line = terminated(separated_pair(alpha1, tag("-to-"), alpha1), tag(" map:\n"));
     let (s, ((source, dest), converters)) =
         pair(name_line, separated_list1(tag("\n"), parse_conversion))(s)?;
@@ -65,7 +65,7 @@ struct Task<'a> {
     mappings: Vec<Mapping<'a>>,
 }
 
-fn parse(s: &str) -> IResult<&str, Task> {
+fn parse(s: &str) -> IResult<&str, Task<'_>> {
     let (s, seeds) = terminated(seeds, tag("\n\n"))(s)?;
     let (s, mut mappings) = separated_list1(tag("\n\n"), parse_map)(s)?;
     mappings

@@ -7,7 +7,7 @@ use std::collections::VecDeque;
 
 type Graph<'a> = Map<&'a str, Vec<&'a str>>;
 
-fn parse_graph(s: &str) -> Option<Graph> {
+fn parse_graph(s: &str) -> Option<Graph<'_>> {
     let mut graph = Graph::default();
     for line in s.lines().filter(|line| !line.is_empty()) {
         let (source, destinations) = line.split_once(':')?;

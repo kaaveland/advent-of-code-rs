@@ -28,7 +28,7 @@ enum Kind {
 #[derive(Debug, Clone, Eq, PartialEq)]
 struct ImmunityList<'a>(Kind, Vec<&'a str>);
 
-fn parse_immunity_list(s: &str) -> IResult<&str, ImmunityList> {
+fn parse_immunity_list(s: &str) -> IResult<&str, ImmunityList<'_>> {
     let (s, kind) = alt((
         map(tag("immune"), |_| Kind::Immune),
         map(tag("weak"), |_| Kind::Weak),
@@ -41,7 +41,7 @@ fn parse_immunity_list(s: &str) -> IResult<&str, ImmunityList> {
 }
 
 struct ImmunityBlock<'a>(Vec<ImmunityList<'a>>);
-fn parse_immunity_block(s: &str) -> IResult<&str, ImmunityBlock> {
+fn parse_immunity_block(s: &str) -> IResult<&str, ImmunityBlock<'_>> {
     let block = alt((
         delimited(
             char('('),
@@ -65,7 +65,7 @@ impl ImmunityBlock<'_> {
     }
 }
 
-fn parse_group(s: &str) -> IResult<&str, Group> {
+fn parse_group(s: &str) -> IResult<&str, Group<'_>> {
     let (s, units) = map_res(digit1, |n: &str| n.parse())(s)?;
     let (s, _) = tag(" units each with ")(s)?;
     let (s, hit_points) = map_res(digit1, |n: &str| n.parse())(s)?;
@@ -100,7 +100,7 @@ struct Armies<'a> {
     infection: Vec<Group<'a>>,
 }
 
-fn parse(s: &str) -> anyhow::Result<Armies> {
+fn parse(s: &str) -> anyhow::Result<Armies<'_>> {
     let mut parser = separated_pair(
         preceded(
             tag("Immune System:\n"),
@@ -142,7 +142,7 @@ impl Group<'_> {
 }
 
 impl Armies<'_> {
-    fn ix(&self, group_id: &GroupId) -> &Group {
+    fn ix(&self, group_id: &GroupId) -> &Group<'_> {
         match group_id {
             GroupId::Infection(ix) => &self.infection[*ix],
             GroupId::ImmuneSystem(ix) => &self.immune_system[*ix],

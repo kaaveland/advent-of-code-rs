@@ -34,7 +34,6 @@ pub fn part_2(s: &str) -> anyhow::Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn check_examples() {}

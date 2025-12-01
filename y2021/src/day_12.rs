@@ -44,7 +44,7 @@ struct Search<'a> {
     end: Cave,
 }
 
-fn parse_graph(input: &str) -> Search {
+fn parse_graph(input: &str) -> Search<'_> {
     let mut labels: HashMap<_, usize> = HashMap::new();
     let mut idx = 0;
     let mut graph = Graph::new();

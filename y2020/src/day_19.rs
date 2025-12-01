@@ -90,7 +90,7 @@ fn validate_seq<'a>(
     Validation::Branch(possible.into_iter().map(Validation::Continue).collect())
 }
 
-fn validate_lit(line: &[char], ch: char) -> Validation {
+fn validate_lit(line: &[char], ch: char) -> Validation<'_> {
     match line.first() {
         None => Validation::Invalid,
         Some(lch) if ch != *lch => Validation::Invalid,

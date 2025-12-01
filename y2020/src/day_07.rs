@@ -9,7 +9,7 @@ struct Graph<'a> {
     costs: Vec<Vec<usize>>,
 }
 
-fn parse(input: &str) -> Result<Graph> {
+fn parse(input: &str) -> Result<Graph<'_>> {
     let mut labels = HashMap::default();
     let mut edges = vec![];
     let mut costs = vec![];

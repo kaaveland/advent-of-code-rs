@@ -50,12 +50,14 @@ fn ring_selectors() -> impl Iterator<Item = usize> {
 fn collect_rings(selector: usize) -> Item {
     assert!(selector.count_ones() < 3);
     let mut out = [0; 3];
-    for ix in 0..RINGS.len() {
-        if selector & (1 << ix) > 0 {
-            out.iter_mut()
-                .zip(RINGS[ix])
-                .for_each(|(stat, ring_stat)| *stat += ring_stat);
-        }
+    for (_, item) in RINGS
+        .iter()
+        .enumerate()
+        .filter(|(ix, _)| selector & (1usize << ix) > 0)
+    {
+        out.iter_mut()
+            .zip(*item)
+            .for_each(|(stat, ring_stat)| *stat += ring_stat);
     }
     out
 }

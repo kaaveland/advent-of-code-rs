@@ -53,7 +53,7 @@ fn parse_dir(s: &str) -> IResult<&str, Direction> {
     }
 }
 
-fn parse_instruction(s: &str) -> IResult<&str, Instruction> {
+fn parse_instruction(s: &str) -> IResult<&str, Instruction<'_>> {
     let (s, dir) = parse_dir(s)?;
     let (s, count): (&str, i64) = preceded(space1, map_res(digit1, FromStr::from_str))(s)?;
     let (s, rgb) = preceded(
@@ -70,7 +70,7 @@ fn parse_instruction(s: &str) -> IResult<&str, Instruction> {
     ))
 }
 
-fn parse_instructions(s: &str) -> Result<Vec<Instruction>> {
+fn parse_instructions(s: &str) -> Result<Vec<Instruction<'_>>> {
     Ok(separated_list1(line_ending, parse_instruction)(s)
         .map_err(|err| anyhow!("{err}"))?
         .1)

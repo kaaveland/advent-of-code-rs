@@ -39,9 +39,9 @@ impl Display {
 
     fn rotate_column(&mut self, col: usize, b: usize) {
         let current_column: Vec<_> = self.rows.iter().map(|row| row[col]).collect();
-        for ix in 0..self.rows.len() {
+        for (ix, item) in current_column.iter().enumerate() {
             let new_ix = (ix + b) % self.rows.len();
-            self.rows[new_ix][col] = current_column[ix];
+            self.rows[new_ix][col] = *item;
         }
     }
 }

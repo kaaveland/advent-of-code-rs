@@ -13,12 +13,12 @@ enum Lexeme<'a> {
     Lit(&'a str),
 }
 
-fn parse_escaped(s: &str) -> IResult<&str, Lexeme> {
+fn parse_escaped(s: &str) -> IResult<&str, Lexeme<'_>> {
     let (s, ch) = preceded(char('\\'), recognize(one_of("\\\"")))(s)?;
     Ok((s, Lexeme::Escaped(ch)))
 }
 
-fn parse_hex(s: &str) -> IResult<&str, Lexeme> {
+fn parse_hex(s: &str) -> IResult<&str, Lexeme<'_>> {
     let hexdigs = "0123456789abcdefABCDEF";
     let (s, hex) = preceded(
         tag("\\x"),
@@ -27,7 +27,7 @@ fn parse_hex(s: &str) -> IResult<&str, Lexeme> {
     Ok((s, Lexeme::Hex(hex)))
 }
 
-fn parse(s: &str) -> anyhow::Result<Vec<Lexeme>> {
+fn parse(s: &str) -> anyhow::Result<Vec<Lexeme<'_>>> {
     many0(alt((
         parse_hex,
         parse_escaped,

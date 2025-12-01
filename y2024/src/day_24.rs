@@ -19,7 +19,7 @@ struct ProvidedValue<'a> {
     value: bool,
 }
 
-fn parse_provided_value(s: &str) -> IResult<&str, ProvidedValue> {
+fn parse_provided_value(s: &str) -> IResult<&str, ProvidedValue<'_>> {
     let (s, wire) = recognize(many1(none_of(":\n")))(s)?;
     let reg = wire.chars().next().unwrap();
     let index = if let Ok(dig) = wire[1..].parse::<usize>() {
@@ -64,16 +64,12 @@ struct CalculatedValue<'a> {
     rhs: &'a str,
 }
 
-fn parse_calculated_value(s: &str) -> IResult<&str, CalculatedValue> {
+fn parse_calculated_value(s: &str) -> IResult<&str, CalculatedValue<'_>> {
     let (s, lhs) = terminated(recognize(many1(none_of(" "))), tag(" "))(s)?;
     let (s, op) = terminated(parse_binop, tag(" "))(s)?;
     let (s, rhs) = terminated(recognize(many1(none_of(" "))), tag(" -> "))(s)?;
     let (s, wire) = recognize(many1(none_of("\n")))(s)?;
-    let z_index = if let Ok(ix) = wire[1..].parse::<usize>() {
-        Some(ix)
-    } else {
-        None
-    };
+    let z_index = wire[1..].parse::<usize>().ok();
     Ok((
         s,
         CalculatedValue {
@@ -86,7 +82,7 @@ fn parse_calculated_value(s: &str) -> IResult<&str, CalculatedValue> {
     ))
 }
 
-fn parse(s: &str) -> Result<(Vec<ProvidedValue>, Vec<CalculatedValue>)> {
+fn parse(s: &str) -> Result<(Vec<ProvidedValue<'_>>, Vec<CalculatedValue<'_>>)> {
     let (_, r) = separated_pair(
         separated_list1(tag("\n"), parse_provided_value),
         tag("\n\n"),
