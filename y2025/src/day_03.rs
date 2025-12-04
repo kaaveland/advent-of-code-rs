@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::cmp::Reverse;
 
 // Obviously correct, but also very slow for 12 digits because it tries every possible combination
