@@ -8,7 +8,7 @@ struct State {
 }
 
 fn parse(s: &str) -> State {
-    let width = s.lines().next().expect("Empty input").as_bytes().len();
+    let width = s.lines().next().expect("Empty input").len();
 
     let with_coordinates = s
         .lines()
@@ -47,13 +47,14 @@ fn split_beams(state: &State) -> (usize, usize) {
 
     beams[state.source.0 as usize] = 1;
 
-    for y in 0..state.height {
+    // Move down line by line
+    for y in state.source.1..state.height {
         let mut next_beams = vec![0; state.width];
         for (x, timelines_here) in beams
             .iter()
             .copied()
             .enumerate()
-            .filter(|(_, is_beam)| *is_beam > 0)
+            .filter(|(_, timelines_here)| *timelines_here > 0)
         {
             if state.splitters.contains(&(x as i32, y)) {
                 splitters_hit += 1;
