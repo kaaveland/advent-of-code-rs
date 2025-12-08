@@ -63,6 +63,7 @@ mod tests {
 
     #[test]
     fn test_ex() {
-        assert_eq!(bfs(10, (7, 4)).1, 11);
+        assert_eq!(bfs(10, (7, 4)).0, 11);
+        assert_eq!(bfs(10, (7, 4)).1, 19);
     }
 }
