@@ -1,11 +1,13 @@
 use anyhow::anyhow;
 use fxhash::FxHashSet;
+use highs::{RowProblem, Sense};
 use nom::bytes::complete::tag;
-use nom::character::complete::{anychar, char, digit1, one_of, space0};
+use nom::character::complete::{char, digit1, one_of};
 use nom::combinator::{map_res, recognize};
 use nom::multi::{many1, separated_list1};
 use nom::sequence::delimited;
 use nom::IResult;
+use rayon::prelude::*;
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -94,13 +96,52 @@ pub fn part_1(s: &str) -> anyhow::Result<String> {
     Ok(format!("{presses}"))
 }
 
+fn configure_machine_joltage(m: &Machine) -> usize {
+    // This is a system of equations. Taking each joltage, for example:
+    // [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+    // Let us name the buttons a through f then we have:
+    // 0th joltage: 3 = e + f
+    // 1st joltage: 5 = b + f
+    // 2nd joltage: 4 = c + d + e
+    // 3rd joltage: 7 = a + b + d
+    // This can be set up as a matrix, and we can use gaussian elimination to solve some
+    // variables which should make the state space smaller. Let's first set up a matrix and
+    // perform gaussian elimination. This may not fix _all_ variables, but it should fix some
+    // of them, and we can use search to find the rest. Recall that we must find the _minimum_
+    // number of presses that achieves the set joltage. This means each button must be pressed
+    // a positive integer number of times.
+    let mut pb = RowProblem::default();
+    let mut vars = vec![];
+    for _ in 0..m.buttons.len() {
+        vars.push(pb.add_integer_column(1.0, 0..));
+    }
+    for (i, &joltage) in m.joltage.iter().enumerate() {
+        let mut constraint = vec![];
+        for (j, &button) in m.buttons.iter().enumerate() {
+            if button & (1 << i) > 0 {
+                constraint.push((vars[j], 1.0));
+            }
+        }
+        pb.add_row(joltage..=joltage, constraint.into_iter());
+    }
+    let model = pb.try_optimise(Sense::Minimise).expect("Unable to solve");
+    let solution = model.solve().get_solution();
+    solution.columns().iter().map(|n| n.round() as usize).sum()
+}
+
+pub fn part_2(s: &str) -> anyhow::Result<String> {
+    let machines = parse(s)?;
+    let sum: usize = machines
+        .into_par_iter()
+        .map(|m| configure_machine_joltage(&m))
+        .sum();
+    Ok(format!("{sum}"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    const EX: &str = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
-[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
-[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
-";
+
     #[test]
     fn test_parse_indicator() {
         let (_, i) = parse_indicator("[.##.]").unwrap();
@@ -127,16 +168,20 @@ mod tests {
             }
         );
     }
+
     #[test]
     fn test_configure_machine() {
         let s = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}";
         let m = parse_machine(s).unwrap().1;
         assert_eq!(configure_machine(&m), 2);
+        assert_eq!(configure_machine_joltage(&m), 10);
         let s = "[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}";
         let m = parse_machine(s).unwrap().1;
         assert_eq!(configure_machine(&m), 3);
+        assert_eq!(configure_machine_joltage(&m), 12);
         let s = "[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}";
         let m = parse_machine(s).unwrap().1;
         assert_eq!(configure_machine(&m), 2);
+        assert_eq!(configure_machine_joltage(&m), 11);
     }
 }
