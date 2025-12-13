@@ -113,7 +113,7 @@ mod assembunny {
         map_res(digit1, |n: &str| n.parse::<i32>())(s)
     }
     fn parse_int(s: &str) -> IResult<&str, Atom> {
-        let p = alt((preceded(char('-'), map(posint, |n: i32| -1 * n)), posint));
+        let p = alt((preceded(char('-'), map(posint, |n: i32| -n)), posint));
         map(p, Atom::Lit)(s)
     }
     fn parse_atom(s: &str) -> IResult<&str, Atom> {
@@ -181,8 +181,10 @@ mod assembunny {
 }
 
 fn exec(prog: &[Op], set_c: i32) -> Registers {
-    let mut reg = Registers::default();
-    reg.c = set_c;
+    let mut reg = Registers {
+        c: set_c,
+        ..Registers::default()
+    };
     while reg.ip < prog.len() as i32 {
         let op = prog[reg.ip as usize];
         reg = reg.next(op);

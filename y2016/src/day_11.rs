@@ -28,10 +28,10 @@ use regex::Regex;
 use std::collections::VecDeque;
 use std::sync::LazyLock;
 
-const GENERATOR_REGEX: LazyLock<Regex> =
+static GENERATOR_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"a ([a-z]+) generator").unwrap());
 
-const CHIP_REGEX: LazyLock<Regex> =
+static CHIP_REGEX: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"a ([a-z]+)-compatible microchip").unwrap());
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone)]

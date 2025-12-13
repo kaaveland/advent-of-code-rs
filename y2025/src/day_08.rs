@@ -48,7 +48,7 @@ fn set_of(circuits: &[FxHashSet<usize>], src: usize) -> usize {
 #[inline]
 fn len_product(circuits: &[FxHashSet<usize>]) -> usize {
     circuits
-        .into_iter()
+        .iter()
         .map(|set| set.len())
         .sorted_by_key(|len| Reverse(*len))
         .take(3)
