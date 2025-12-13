@@ -1,3 +1,4 @@
+use md5::Digest;
 use rayon::prelude::*;
 
 const CHUNK: usize = 32_000;
@@ -5,10 +6,10 @@ const CHUNK: usize = 32_000;
 const HEXDIGITS: &[u8] = b"0123456789abcdef";
 
 fn md5check(k: &str, n: usize) -> Option<(u8, u8)> {
-    let mut ctx = md5::Context::new();
-    ctx.consume(k);
-    ctx.consume(n.to_string());
-    let digest = ctx.compute();
+    let mut ctx = md5::Md5::new();
+    ctx.update(k);
+    ctx.update(n.to_string());
+    let digest = ctx.finalize();
     if digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xf0 == 0) {
         let dig = digest[2] & 0x0f;
         let nextdig = (digest[3] & 0xf0) >> 4;
