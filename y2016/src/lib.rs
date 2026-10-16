@@ -15,6 +15,7 @@ mod day_12;
 mod day_13;
 mod day_14;
 mod day_15;
+mod day_16;
 
 pub const SOLUTIONS: [Answer; 25] = [
     Answer::SolvedBoth {
@@ -77,7 +78,10 @@ pub const SOLUTIONS: [Answer; 25] = [
         part_1: day_15::part_1,
         part_2: day_15::part_2,
     },
-    Answer::NotImplementedYet,
+    Answer::SolvedBoth {
+        part_1: day_16::part_1,
+        part_2: day_16::part_2,
+    },
     Answer::NotImplementedYet,
     Answer::NotImplementedYet,
     Answer::NotImplementedYet,
