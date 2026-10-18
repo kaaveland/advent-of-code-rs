@@ -160,14 +160,17 @@ impl Op {
             Op::RotLeft(x) => Op::RotRight(*x).exec(s),
             Op::RotRight(x) => Op::RotLeft(*x).exec(s),
             // Hard to think of how to invert this, but for n=5 and n=8
-            // it's safe to just generate all permutations of the input string and pick the one
-            // that results in the provided output as 8! is only around 40k
+            // it's safe to just generate all rotations of the input string and pick the one
+            // that results in the provided output
             op @ Op::RotRightPos(_) => {
-                let ss = s.iter().copied().collect_vec();
-                let mut v = vec![' '; ss.len()];
-                let p = ss
-                    .iter()
-                    .permutations(ss.len())
+                let mut v = vec![' '; s.len()];
+                let p = (0..=s.len())
+                    .map(|n| {
+                        let mut v = Vec::with_capacity(s.len());
+                        v.extend(s.iter().copied());
+                        v.rotate_left(n);
+                        v
+                    })
                     .find(|p| {
                         v.clear();
                         v.extend(p.iter().copied());
@@ -175,9 +178,7 @@ impl Op {
                         v == s
                     })
                     .unwrap();
-                for i in 0..s.len() {
-                    s[i] = *p[i];
-                }
+                s.copy_from_slice(&p[..s.len()]);
             }
         }
     }
