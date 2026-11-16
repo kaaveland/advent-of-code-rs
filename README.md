@@ -17,6 +17,7 @@ Progress
 
 These runtimes are for all the puzzles in each year, ran with `hyperfine -N --warmup 20`.
 
+- 2025: ✅ Time (mean ± σ):      60.4 ms ± 1.0 ms
 - 2024: ✅ Time (mean ± σ):      51.5 ms ± 8.2 ms
 - 2023: ✅ Time (mean ± σ):     245.5 ms ± 9.5 ms
 - 2022: ✅ Time (mean ± σ):     177.2 ms ± 4.0 ms
@@ -49,8 +50,7 @@ Options:
 ```
 
 If you want to actually use this, you probably want to first run `target/release/aoc data` to
-get a copy of your datasets locally. The output from `runall` looks something like this
-(these are my answers for 2021):
+get a copy of your datasets locally. The output from `runall` looks something like this (these are my answers for 2021):
 
 ```shell
 $ target/release/aoc runall 2021

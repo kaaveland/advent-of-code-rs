@@ -1,7 +1,7 @@
 use crate::day_12::assembunny::{Op, Registers};
 use anyhow::anyhow;
 
-mod assembunny {
+pub mod assembunny {
     use nom::branch::alt;
     use nom::bytes::complete::tag;
     use nom::character::complete::{char, digit1};
@@ -20,7 +20,7 @@ mod assembunny {
     }
 
     impl Registers {
-        fn val_of(&self, reg: Register) -> i32 {
+        pub fn val_of(&self, reg: Register) -> i32 {
             match reg {
                 Register::A => self.a,
                 Register::B => self.b,
@@ -28,13 +28,13 @@ mod assembunny {
                 Register::D => self.d,
             }
         }
-        fn atom_val(&self, atom: &Atom) -> i32 {
+        pub fn atom_val(&self, atom: &Atom) -> i32 {
             match atom {
                 Atom::Lit(x) => *x,
                 Atom::Reg(src) => self.val_of(*src),
             }
         }
-        fn reg_set(&mut self, reg: Register, to: i32) {
+        pub fn reg_set(&mut self, reg: Register, to: i32) {
             match reg {
                 Register::A => {
                     self.a = to;
@@ -101,7 +101,7 @@ mod assembunny {
         Dec(Register),
         Jnz(Atom, Atom),
     }
-    fn parse_register(s: &str) -> IResult<&str, Register> {
+    pub fn parse_register(s: &str) -> IResult<&str, Register> {
         alt((
             map(char('a'), |_| Register::A),
             map(char('b'), |_| Register::B),
@@ -109,14 +109,14 @@ mod assembunny {
             map(char('d'), |_| Register::D),
         ))(s)
     }
-    fn posint(s: &str) -> IResult<&str, i32> {
+    pub fn posint(s: &str) -> IResult<&str, i32> {
         map_res(digit1, |n: &str| n.parse::<i32>())(s)
     }
     fn parse_int(s: &str) -> IResult<&str, Atom> {
         let p = alt((preceded(char('-'), map(posint, |n: i32| -n)), posint));
         map(p, Atom::Lit)(s)
     }
-    fn parse_atom(s: &str) -> IResult<&str, Atom> {
+    pub fn parse_atom(s: &str) -> IResult<&str, Atom> {
         alt((map(parse_register, Atom::Reg), parse_int))(s)
     }
     fn parse_inc(s: &str) -> IResult<&str, Op> {
