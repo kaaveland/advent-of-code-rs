@@ -1,7 +1,7 @@
 use crate::day_12::assembunny::{Atom, Register, Registers};
 use crate::day_23::parse::{Instruction, Op};
 
-mod parse {
+pub mod parse {
     use crate::day_12::assembunny::{parse_atom, parse_register, Atom, Register};
     use anyhow::anyhow;
     use nom::branch::alt;
@@ -21,7 +21,9 @@ mod parse {
         Tgl(Register),
         Mul(Register, Register, Register),
         Noop,
+        Out(Register),
     }
+
     fn parse_inc(s: &str) -> IResult<&str, Op> {
         map(preceded(tag("inc "), parse_register), Op::Inc)(s)
     }
@@ -45,6 +47,12 @@ mod parse {
         let (s, i) = parse_register(s)?;
         Ok((s, Op::Tgl(i)))
     }
+    fn parse_out(s: &str) -> IResult<&str, Op> {
+        let (s, _) = tag("out ")(s)?;
+        let (s, i) = parse_register(s)?;
+        Ok((s, Op::Out(i)))
+    }
+
     #[derive(Copy, Clone, Eq, PartialEq, Debug)]
     pub struct Instruction {
         pub op: Op,
@@ -53,7 +61,9 @@ mod parse {
     pub fn parse(s: &str) -> IResult<&str, Vec<Op>> {
         separated_list1(
             char('\n'),
-            alt((parse_inc, parse_dec, parse_cpy, parse_jnz, parse_tgl)),
+            alt((
+                parse_inc, parse_dec, parse_cpy, parse_jnz, parse_tgl, parse_out,
+            )),
         )(s)
     }
     pub fn parse_prog(s: &str) -> anyhow::Result<Vec<Instruction>> {
@@ -81,6 +91,7 @@ impl AssembunnyMachine {
         let mut jmp = false;
 
         match (toggled, op) {
+            (_, Op::Out(_)) => {}
             (_, Op::Noop) => {}
             (_, Op::Mul(lhs, rhs, dst)) => {
                 self.registers
