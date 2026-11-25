@@ -1,19 +1,11 @@
-use itertools::Itertools;
 use std::mem::swap;
 
 fn next_row(cur: &[bool], next: &mut [bool]) {
     for i in 0..cur.len() {
         let left_is_trap = if i > 0 { cur[i - 1] } else { false };
-        let center_is_trap = cur[i];
         let right_is_trap = cur.get(i + 1).copied().unwrap_or(false);
-        let conv = [left_is_trap, center_is_trap, right_is_trap];
-        let new_trap_shapes = [
-            [true, true, false],
-            [false, true, true],
-            [true, false, false],
-            [false, false, true],
-        ];
-        next[i] = new_trap_shapes.iter().contains(&conv);
+        // All four trap shapes boil down to: exactly one of left/right is a trap
+        next[i] = left_is_trap != right_is_trap;
     }
 }
 

@@ -5,11 +5,7 @@ use rayon::prelude::*;
 
 #[inline]
 fn hexchar(b: u8) -> u8 {
-    if b < 10 {
-        b + b'0'
-    } else {
-        (b - 10) + b'a'
-    }
+    b"0123456789abcdef"[b as usize]
 }
 
 fn hexdigits(digest: &[u8]) -> [u8; 32] {
