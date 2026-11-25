@@ -25,6 +25,7 @@ These runtimes are for all the puzzles in each year, ran with `hyperfine -N --wa
 - 2020: ✅ Time (mean ± σ):     601.8 ms ± 10.7 ms
 - 2019: ✅ Time (mean ± σ):     291.8 ms ± 12.3 ms
 - 2018: ✅ Time (mean ± σ):     232.7 ms ± 14.1 ms
+- 2016: ✅ Time (mean ± σ):     970.3 ms ± 18.6 ms
 - 2015: ✅ Time (mean ± σ):     164.2 ms ± 18.8 ms
 
 Usage
