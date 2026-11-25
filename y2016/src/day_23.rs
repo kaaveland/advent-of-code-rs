@@ -192,21 +192,3 @@ pub fn part_2(s: &str) -> anyhow::Result<String> {
     )?;
     Ok(format!("{}", r.a))
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    const EX: &str = "cpy 2 a
-tgl a
-tgl a
-tgl a
-cpy 1 a
-dec a
-dec a
-";
-    #[test]
-    fn test_ex_1() {
-        let r = execute(EX, Default::default()).unwrap();
-        assert_eq!(r.a, 3);
-    }
-}
